@@ -1,0 +1,18 @@
+# Talyx Skills — workspace config
+#
+# Copy to `.talyx/config.yaml` in the folder you work in. All settings are optional;
+# with no config file at all, every skill uses the defaults below.
+#
+# One key per setting a skill actually reads. Nothing speculative lives here.
+
+# --- Where skills write files ---
+# Any skill that produces a file writes it under this root, in its own subfolder
+# (for example `<root>/briefs/`). Relative to the folder you are working in.
+#
+# Must stay inside the working directory. An absolute path, or one that escapes
+# upward, is rejected with an error rather than falling back to the default —
+# so a typo cannot quietly scatter files somewhere you did not intend.
+#
+# Read by: talyx-brief
+
+# output_root: talyx-output        # default: talyx-output

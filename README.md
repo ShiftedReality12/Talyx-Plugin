@@ -41,10 +41,21 @@ Prints `TALYX_PLUGIN_OK` and names the environment it is running in.
 
 ## Skills
 
-| Skill | What it does |
-|---|---|
-| `talyx-ping` | Confirms the plugin is installed and reports which environment mounted it |
-| `esdp-agent-builder` | Turns a knowledge base and team roster into ESDP v1.0 agent specs |
+| Skill | What it does | Writes files |
+|---|---|---|
+| `talyx-ping` | Confirms the plugin is installed and names the environment | no |
+| `talyx-format` | Rewrites messy notes into a clean structured document | no |
+| `talyx-brief` | Turns notes into a one-page brief saved to your workspace | yes |
+
+## Configuration
+
+All optional. With no config file, every skill uses its default.
+
+Copy `.talyx/config.example.yaml` to `.talyx/config.yaml` in the folder you work in:
+
+| Key | What it controls | Default | Read by |
+|---|---|---|---|
+| `output_root` | Where skills write files, relative to your working folder | `talyx-output` | `talyx-brief` |
 
 ## Supported hosts
 
