@@ -21,6 +21,7 @@ directory, nothing is written, nothing is installed.
    | Path contains | Environment |
    |---|---|
    | `/.codex/` | ChatGPT / Codex |
+   | `/.grok/` | Grok Build |
    | `/.cursor/` | Cursor |
    | `/plugins/synced/` | Claude Cowork |
    | `/mnt/skills/plugins/` | Claude Chat |
