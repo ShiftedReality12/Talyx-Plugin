@@ -1,0 +1,26 @@
+{
+  "name": "talyx",
+  "owner": {
+    "name": "Talyx"
+  },
+  "metadata": {
+    "description": "Talyx plugin marketplace",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "talyx-skills",
+      "description": "Talyx skills for turning your own knowledge into repeatable work",
+      "author": {
+        "name": "Talyx"
+      },
+      "homepage": "https://talyx.ai",
+      "tags": [
+        "talyx",
+        "workflows",
+        "knowledge"
+      ],
+      "source": "./"
+    }
+  ]
+}

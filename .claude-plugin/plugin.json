@@ -1,0 +1,16 @@
+{
+  "name": "talyx-skills",
+  "version": "0.1.0",
+  "description": "Talyx skills for turning your own knowledge into repeatable work",
+  "author": {
+    "name": "Talyx"
+  },
+  "homepage": "https://talyx.ai",
+  "license": "UNLICENSED",
+  "keywords": [
+    "talyx",
+    "workflows",
+    "knowledge",
+    "intelligence"
+  ]
+}
