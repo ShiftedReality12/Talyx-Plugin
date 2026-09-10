@@ -1,6 +1,6 @@
 {
   "name": "talyx-skills",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Talyx skills for turning your own knowledge into repeatable work",
   "author": {
     "name": "Talyx"
@@ -30,6 +30,8 @@
       "Check the Talyx plugin is installed",
       "Show me which Talyx skills are available"
     ],
-    "screenshots": []
+    "screenshots": [],
+    "brandColor": "#0F2744",
+    "logo": "./assets/logo.png"
   }
 }
