@@ -48,23 +48,23 @@ Prints `TALYX_PLUGIN_OK` and names the environment it is running in.
 
 ## Supported hosts
 
-One `skills/` tree serves every host below. Each host reads its own manifest folder.
+One `skills/` tree serves every host below. Each reads its own manifest folder.
 
 | Host | Manifest | Verified |
 |---|---|---|
 | Claude Code | `.claude-plugin/` | yes — install, run, update |
 | Claude Cowork | `.claude-plugin/` | yes — private repo sync |
 | Claude Chat | `.claude-plugin/` | yes |
-| ChatGPT / Codex | `.codex-plugin/` | manifest written, not yet installed |
-| Cursor | `.cursor-plugin/` | manifest written, not yet installed |
-| Grok | `.grok-plugin/` | manifest written, not yet installed |
-| Kimi | `.kimi-plugin/` | manifest written, not yet installed |
-| Devin | `.devin-plugin/` | manifest written, not yet installed |
-| OMP | `.omp-plugin/` | manifest written, not yet installed |
+| Grok Build | `.grok-plugin/` | yes — install, run, update |
+| ChatGPT Work / Codex | `.codex-plugin/` | yes — install and run |
+| ChatGPT chat | `.codex-plugin/` | **no** — needs public listing or a workspace admin import |
+| Cursor | `.cursor-plugin/` | manifest written, not installed |
+| Devin | `.devin-plugin/` | manifest written, not installed |
 
-**Perplexity works differently.** It has no plugin manifest and no marketplace — skills
-are uploaded one at a time as ZIP bundles, each holding exactly one top-level folder
-with one `SKILL.md`. Those bundles are generated separately.
+**Perplexity works differently.** No plugin manifest, no marketplace — skills are uploaded
+one at a time under **Skills → + Create skill**, either as a bare `.md` or as a `.zip`
+holding exactly one top-level folder with one `SKILL.md`. Bundles are generated separately
+to `dist/perplexity/`.
 
 ## Manifests are generated
 
