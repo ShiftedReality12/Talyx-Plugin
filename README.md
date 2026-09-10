@@ -23,7 +23,7 @@ Prints `TALYX_PLUGIN_OK` when the plugin is loaded correctly.
 
 | Skill | What it does |
 |---|---|
-| `talyx-ping` | Confirms the plugin is installed and running |
+| `talyx-ping` | Confirms the plugin is installed and reports which environment mounted it |
 | `esdp-agent-builder` | Turns a knowledge base and team roster into ESDP v1.0 agent specs |
 
 ## Notes
