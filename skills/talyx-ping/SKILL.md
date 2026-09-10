@@ -5,49 +5,37 @@ description: Confirm the Talyx plugin is installed and report which environment 
 
 # Talyx Ping
 
-**Outcome:** the user sees that the Talyx plugin is loaded, which environment mounted it, and where its files live.
+**Outcome:** the user sees that the Talyx plugin is loaded and which environment mounted it.
 
-**Done:** the report below is printed. Nothing is written to disk and nothing is installed.
-
-## Rule this skill obeys
-
-Read only inside this skill's own directory. Never read a path above it — plugin
-layouts differ by environment and a parent path that exists in one is absent in
-another. Report what is observable; never infer a value you could not read.
+**Done:** the four lines below are printed. Nothing is read outside this skill's own
+directory, nothing is written, nothing is installed.
 
 ## Steps
 
 1. Determine the absolute directory this `SKILL.md` was loaded from.
 
-2. Name the environment by matching that path against the table below. If none match,
-   report `unrecognized layout` and print the path — do not guess.
+2. Name the environment by checking that path against this table **in order**, first
+   match wins. Several hosts use `plugins/cache`, so the earlier rows are what
+   separate them.
 
    | Path contains | Environment |
    |---|---|
-   | `/plugins/cache/` | Claude Code |
-   | `/plugins/synced/` | Cowork |
+   | `/.codex/` | ChatGPT / Codex |
+   | `/.cursor/` | Cursor |
+   | `/plugins/synced/` | Claude Cowork |
    | `/mnt/skills/plugins/` | Claude Chat |
+   | `/.claude/` | Claude Code |
 
-3. List the other Talyx skills visible alongside this one. The sibling location
-   depends on the layout: in Claude Code and Cowork they are directories beside this
-   one; in Chat they are separate top-level entries named `talyx-skills:<skill>`.
-   If siblings cannot be listed, say so rather than assuming.
+   No match: report `unrecognized layout` and print the path. Do not guess.
 
-4. Print exactly this line last, unchanged:
-
-```
-TALYX_PLUGIN_OK
-```
-
-## Report shape
+3. Print exactly this, and nothing else:
 
 ```
 Talyx plugin — loaded
-Environment: <Claude Code | Cowork | Claude Chat | unrecognized layout>
+Environment: <name from the table>
 Path:        <absolute directory>
-Skills:      <comma-separated list, or "could not enumerate">
 TALYX_PLUGIN_OK
 ```
 
-Keep the whole response under ten lines. This skill exists to confirm the install
-and identify the environment, nothing more.
+Do not list other skills, and do not look for a manifest. Both require reading above
+this directory, which is not portable across hosts.
