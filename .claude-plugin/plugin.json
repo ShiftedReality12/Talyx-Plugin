@@ -1,11 +1,12 @@
 {
   "name": "talyx-skills",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Talyx skills for turning your own knowledge into repeatable work",
   "author": {
     "name": "Talyx"
   },
   "homepage": "https://talyx.ai",
+  "repository": "https://github.com/ShiftedReality12/Talyx-Plugin",
   "license": "UNLICENSED",
   "keywords": [
     "talyx",
