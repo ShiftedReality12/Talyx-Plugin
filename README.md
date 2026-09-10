@@ -11,6 +11,26 @@ Talyx skills, packaged so they load into your own AI environment in one step.
 
 Start a **new chat** after installing — plugins do not activate mid-conversation.
 
+### Turn on auto-update
+
+Third-party marketplaces have auto-update **off by default**, so new versions will not
+arrive on their own until you enable it. Do this once:
+
+1. Run `/plugin`
+2. Select **Marketplaces**
+3. Choose **talyx**
+4. Select **Enable auto-update**
+
+After that, Claude refreshes the marketplace and updates the plugin in the background
+shortly after each session starts, then prompts you to run `/reload-plugins`.
+
+Without it, update by hand whenever you want the latest:
+
+```
+/plugin marketplace update talyx
+/plugin update talyx-skills
+```
+
 ## Verify
 
 ```
