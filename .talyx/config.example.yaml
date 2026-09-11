@@ -64,7 +64,28 @@
 
 
 # ───────────────────────────────────────────────────────────────────────────
-# 3. SOURCES — where the material lives, and which copy is the real one
+# 3. INPUTS — what arrives, and what it reliably contains
+#    A skill that knows the intake email carries the legal name does not ask
+#    you to paste it. Name the inputs you actually get and what is in them.
+# ───────────────────────────────────────────────────────────────────────────
+
+# inputs:
+#   - name: "intake email"
+#     from: "Outlook"
+#     provides: ["client legal name", "address", "contact"]
+#   - name: "agreed scope email"
+#     from: "Outlook"
+#     provides: ["deliverables", "dates"]
+#   - name: "discovery notes"
+#     from: "Teams"
+#     provides: ["requirements", "context"]
+#   - name: "pricing sheet"
+#     from: "Finance/Engagement Pricing.xlsx"
+#     provides: ["approved fees", "payment milestones"]
+
+
+# ───────────────────────────────────────────────────────────────────────────
+# 4. SOURCES — where the material lives, and which copy is the real one
 # ───────────────────────────────────────────────────────────────────────────
 
 # ★ Folders holding material skills should read from. Named, never guessed.
@@ -86,7 +107,7 @@
 
 
 # ───────────────────────────────────────────────────────────────────────────
-# 4. OUTPUT — where files go, what they are called, how they read
+# 5. OUTPUT — where files go, what they are called, how they read
 # ───────────────────────────────────────────────────────────────────────────
 
 # Where skills write, relative to the folder you work in. Each skill uses its
@@ -109,7 +130,7 @@
 
 
 # ───────────────────────────────────────────────────────────────────────────
-# 5. GUARDRAILS — the most important section in this file
+# 6. GUARDRAILS — the most important section in this file
 #    Everything here is handed back to a person, never resolved by a skill.
 # ───────────────────────────────────────────────────────────────────────────
 
@@ -134,7 +155,7 @@
 
 
 # ───────────────────────────────────────────────────────────────────────────
-# 6. REVIEW — nothing reaches a client without a person
+# 7. REVIEW — nothing reaches a client without a person
 #    Skills mark drafts and name reviewers. They never send, publish, or
 #    mark anything final or approved.
 # ───────────────────────────────────────────────────────────────────────────
@@ -152,7 +173,7 @@
 
 
 # ───────────────────────────────────────────────────────────────────────────
-# 7. WHEN A SKILL GETS STUCK
+# 8. WHEN A SKILL GETS STUCK
 # ───────────────────────────────────────────────────────────────────────────
 
 # A required fact is missing.
