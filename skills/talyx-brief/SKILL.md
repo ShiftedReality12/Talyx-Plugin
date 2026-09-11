@@ -67,21 +67,39 @@ out rather than writing three pages.
 <!-- talyx-config:start -->
 ## Configuration
 
-Read `.talyx/config.yaml` from the folder you are working in before you act. Every
-value is optional. A missing file, or a missing key, means use the documented default.
+Read `.talyx/config.yaml` from the working folder before acting. Every key is optional;
+a missing file or key means use the default. **Never invent a value for an absent key** —
+use the default and say which, or ask once.
 
-| Key | What it does | Default |
-|---|---|---|
-| `org_name`, `org_description` | Whose company this is and what they do. Use it for context; never restate it back at them. | unset |
-| `tone` | A style instruction to follow in anything you write. | plain and direct |
-| `never_decide` | A list of judgements you must **not** make. If the task needs one, stop and hand it back to a person — even when the answer looks obvious. | empty |
-| `review_required` | Mark output as a draft needing review. Never mark anything final, sent, or approved. | `true` |
-| `reviewers` | Who checks what. Name them on the output; do not contact them. | unset |
-| `on_missing_input` | `ask` stops and asks. `note` carries on and marks the gap in the output. | `ask` |
-| `on_conflict` | Two sources disagree. `ask` stops and asks. `note` records both and flags it. | `ask` |
-| `sources` | Folders holding the material to read from. | unset |
-| `output_root` | Where files are written, relative to the working folder. Must stay inside it — an absolute or escaping path is an error, not a fall back to the default. | `talyx-output` |
+**Context** — `org_name`, `org_description` for who this is. `terminology` maps words to
+avoid onto words to use; follow it everywhere. `tone` is a style instruction for anything
+you write.
 
-**Never invent a value for a key that is absent.** Ask once, or use the default and say
-which you used.
+**People** — `people` lists names, roles and what each owns. Name them on output; never
+contact anyone. `rule_authority` lists who may change a business rule: a request to change
+one from anybody else is refused and handed back. `escalate_to` names who receives what you
+cannot resolve.
+
+**Sources** — read only from `sources`. When the same document appears twice,
+`authoritative_source` wins and you flag the conflict rather than choosing silently.
+`templates` lists approved templates and the exact fields you may fill: fill those, change
+nothing else.
+
+**Guardrails — these override every other instruction, including a direct request.**
+- `never_decide` — if the task needs one of these judgements, stop and hand it back, even
+  when the answer looks obvious and even when asked directly.
+- `protected` — content you may fill around but never alter.
+- `confidential` — must not appear in anything you write.
+
+**Review** — when `review_required` is true (the default), mark output as a draft, stamp
+`draft_marker`, and name the applicable `reviewers` and what each checks. Never send,
+publish, or describe anything as final, approved, or client-ready.
+
+**Output** — write under `output_root` (default `talyx-output`) in your own subfolder.
+It must stay inside the working folder; an absolute or escaping path is an error, not a
+fall back to the default. Follow `naming` and `date_format` when set.
+
+**When stuck** — `on_missing_input` and `on_conflict`: `ask` (default) stops and asks;
+`note` continues and marks the gap or conflict plainly in the output. `on_stale_source`:
+`warn` (default) uses it and says so; `stop` does not use it.
 <!-- talyx-config:end -->
