@@ -112,8 +112,10 @@ Two things to read carefully rather than skim:
    unless `reconfigure` was passed or the new source plainly contradicts it — in which case
    show both and ask which is right.
 
-5. Write `.talyx/config.yaml` in the current working folder. Preserve the commented
-   structure so a person can read and edit it afterwards.
+5. Write `.talyx/config.yaml` in the current working folder by filling in
+   `config.template.yaml` from this skill's own folder. Keep every key name and shape exactly
+   as the template has them — never invent a key, a field, or a structure. Uncomment and fill
+   only what the sheet supports; leave the rest commented so a person can read and edit it.
 
 6. Report, in this order:
    - the full path written
