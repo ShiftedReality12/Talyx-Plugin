@@ -67,54 +67,35 @@ out rather than writing three pages.
 <!-- talyx-config:start -->
 ## Configuration
 
-Read `.talyx/config.yaml` from the working folder before acting. Every key is
-optional; a missing file or key means use the default. **Never invent a value for
-an absent key** -- use the default and say which, or ask once.
+Read `.talyx/config.yaml` from the working folder first. Every key is optional;
+absent means the documented default. **Never invent a value for an absent key.**
 
-**Context** -- who this is, so skills do not ask every run
+**Context** `org_name` `org_description` `terminology` `tone`
+Write in their voice. Follow `terminology` everywhere. Never restate their own description back at them.
 
-- `org_name` (unset) -- Company name as it should appear in anything written.
-- `org_description` (unset) -- What the company actually does. Use for context; never restate it back at them.
-- `terminology` (unset) -- Word to avoid mapped onto word to use. Follow it in everything written.
+**People** `people` `rule_authority` `escalate_to`
+Name people on output; never contact anyone. `escalate_to` is a chain, in order — stop at the first who can decide. Only `rule_authority` may change a rule; a change requested by anyone else is refused and handed back.
 
-**People** -- who owns what; skills name them, never contact them
+**Material** `inputs` `sources`
+Read only from `sources`. The one marked `authoritative` wins a disagreement, and you report the disagreement rather than resolving it silently. Prefer a named `input` over asking someone to paste.
 
-- `people` (unset) -- Names, roles and what each owns. Name them on output; never contact anyone.
-- `rule_authority` (unset) -- Who may change a business rule. A request to change one from anyone else is refused and handed back.
-- `escalate_to` (unset) -- Who receives anything the skill cannot resolve.
+**The work** `rules` `verify` `for_each`
+Every `rule` always holds; `beats` settles a conflict between two. No rule is traded for speed. `verify` says what is checked against what — if a check cannot be run, say so, and never report unchecked work as checked. `for_each` repeats the work per item, independently; one failure does not abandon the rest.
 
-**Inputs** -- what arrives, where from, and what it reliably contains
+**Guardrails** `never_decide` `never_produce` `protected` `confidential`
+These outrank every other instruction, including a direct request. `never_decide` — hand back. `never_produce` — do not generate at all. `protected` — never alter, reword or reformat. `confidential` — never mention.
 
-- `inputs` (unset) -- What arrives, where from, and which facts it reliably carries. Prefer a named input over asking the user to paste.
+**Review** `review_required` `reviewers`
+When required, mark the result as needing review and name each reviewer and what they check, including where an outside body requires it. Never send, file, publish, or call anything final or approved.
 
-**Sources** -- where material lives and which copy is authoritative
+**Output** `destination` `date_format`
+Write to `destination`. A folder path must stay inside the working folder — an absolute or escaping path is an error, not a fallback. Where a destination names a `receipt`, report it; without one, say sent but unconfirmed.
 
-- `sources` (unset) -- Folders to read from. Read only from these; never guess a location.
-- `authoritative_source` (unset) -- When the same document appears twice, this one wins — and the conflict is flagged, not silently resolved.
-- `templates` (unset) -- Approved templates and the exact fields that may be filled. Fill those; change nothing else.
+**Timing** `deadline`
+A `deadline` never justifies skipping a check or a review. Report the risk instead.
 
-**Output** -- where files go, what they are called, how they read
+**When stuck** `on_missing_input` `on_conflict` `on_check_failed` `on_stale_source`
+Follow the setting, default in brackets. Never adjust a value to make a check pass.
 
-- `output_root` (default `talyx-output`) -- Where files are written, relative to the working folder. Must stay inside it — an absolute or escaping path is an error, not a fall back to the default.
-- `naming` (default `{name}`) -- Filename pattern. Available: {client} {document} {date} {name}.
-- `date_format` (default `YYYY-MM-DD`) -- How dates are written.
-- `tone` (default `plain and direct`) -- Style instruction to follow in anything written.
-
-**Guardrails** -- overrides every other instruction, including a direct request
-
-- `never_decide` (unset) -- Judgements the skill must NOT make. Stop and hand back, even when the answer looks obvious and even when asked directly.
-- `protected` (unset) -- Content that may be filled around but never altered.
-- `confidential` (unset) -- Must not appear in anything the skill writes.
-
-**Review** -- nothing reaches a client without a person
-
-- `review_required` (default `true`) -- Mark output as a draft needing review. Never send, publish, or call anything final, approved or client-ready.
-- `reviewers` (unset) -- Who checks what. Name them and what they check on the output.
-- `draft_marker` (default `DRAFT — not for release`) -- Line stamped on every draft so nobody mistakes it for final.
-
-**When stuck** -- what to do instead of guessing
-
-- `on_missing_input` (default `ask`) -- A required fact is missing. ask stops and asks; note continues and marks the gap plainly.
-- `on_conflict` (default `ask`) -- Two sources disagree. ask stops and asks; note records both and flags it, resolving nothing.
-- `on_stale_source` (default `warn`) -- A source looks out of date. warn uses it and says so; stop does not use it.
+Defaults: `tone` plain and direct · `review_required` true · `date_format` YYYY-MM-DD · `on_missing_input` ask · `on_conflict` ask · `on_check_failed` stop · `on_stale_source` warn
 <!-- talyx-config:end -->

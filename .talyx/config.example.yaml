@@ -1,192 +1,63 @@
-# ═══════════════════════════════════════════════════════════════════════════
-# TALYX SKILLS — WORKSPACE CONFIG
-# ═══════════════════════════════════════════════════════════════════════════
+# Talyx — workspace config
 #
-# Copy this to `.talyx/config.yaml` in the folder you work in, then delete what
-# you do not need. Everything is optional. With no file at all, every skill runs
-# on the defaults documented below.
+# Copy to `.talyx/config.yaml` and replace with your own. Everything is optional;
+# skills use documented defaults for anything absent and never invent a value.
+# `/talyx-setup` writes this for you from a completed scoping sheet.
 #
-# WHY THIS FILE EXISTS
-# A Talyx skill never hardcodes your company, your folders, your people or your
-# rules. It reads them from here. That is what lets the same skill work for any
-# company without being rewritten — and what stops a skill from making a call
-# that is yours to make.
-#
-# HOW TO FILL IT IN
-# Start with the five keys marked ★. They carry most of the value. Add the rest
-# only when a skill asks you for something it could not find.
-#
-# The examples below are a real filled-in config for a consulting firm
-# standardising its contract library. Yours will look different; the shape is
-# the same.
-#
-# ═══════════════════════════════════════════════════════════════════════════
+# Below is one real example — a wealth manager producing quarterly client packs.
+# Yours will look nothing like it. The shape is the same.
 
+org_name: "Ridgeline Private Wealth"
+org_description: "Fee-only fiduciary advisory. Not a broker-dealer."
+tone: "Plain and factual. No salesmanship. Never imply a future return."
 
-# ───────────────────────────────────────────────────────────────────────────
-# 1. ORGANISATION — so skills write with context instead of asking every run
-# ───────────────────────────────────────────────────────────────────────────
+terminology:
+  customer: "client"
+  portfolio: "household"
 
-# ★ Your company name, as it should appear in anything written.
-# org_name: "M Worldwide"
+people:
+  - { name: "Marguerite Oyelaran", role: "Senior Advisor", owns: "pack assembly" }
+  - { name: "Compliance",          role: "Compliance",     owns: "sign-off" }
+escalate_to: ["Marguerite Oyelaran", "Compliance"]
+rule_authority: ["Compliance"]
 
-# ★ One or two sentences on what you actually do. Skills use this to pitch
-#   language correctly. Be blunt — correct a likely misreading if there is one.
-# org_description: >-
-#   A full corporate-function consulting suite. Not a marketing agency.
+inputs:
+  - { name: "custodian data", from: "Orion", provides: ["holdings", "performance", "fees"] }
+  - { name: "meeting dates",  from: "Redtail", provides: ["household", "meeting date"] }
 
-# House vocabulary. Left is the word to avoid, right is the word to use.
-# Skills follow this in everything they write.
-# terminology:
-#   customer: "client"
-#   project: "engagement"
-#   deal: "opportunity"
+sources:
+  - { path: "Orion", holds: "system of record for all figures", authoritative: true }
+  - { path: "Model Targets Q3.xlsx", holds: "target allocations" }
+  - { path: "Compliance/Approved Language.docx", holds: "disclosure text" }
 
+for_each: "household"
 
-# ───────────────────────────────────────────────────────────────────────────
-# 2. PEOPLE — who does what, so a skill knows whom to name and whom to ask
-#    Skills never contact anyone. They name people on output and hand work back.
-# ───────────────────────────────────────────────────────────────────────────
+rules:
+  - { rule: "Every figure must trace to Orion", because: "it is the system of record" }
+  - { rule: "Approved disclosure text is used verbatim", because: "regulator-approved" }
+  - { rule: "Correctness beats the deadline", beats: "quarter-end deadline" }
 
-# people:
-#   - { name: "Sarah Khan",  role: "Business Development Director", owns: "document preparation" }
-#   - { name: "Omar Abdalla", role: "Principal",                    owns: "scope" }
-#   - { name: "CFO",          role: "Finance",                      owns: "commercial terms" }
-#   - { name: "Counsel",      role: "Legal",                        owns: "legal terms" }
+verify:
+  - { check: "every figure",     against: "Orion",              match: "to the cent" }
+  - { check: "allocation drift", against: "Model Targets Q3.xlsx", match: "exact" }
 
-# Who may change the rules in this file. A skill will not act on a request to
-# change a business rule unless it comes from someone named here.
-# rule_authority: ["Omar Abdalla"]
+never_decide:
+  - "whether drift warrants a rebalance"
+never_produce:
+  - "a recommendation, projection, or performance forecast"
+protected:
+  - "approved disclosure language — not one comma"
+confidential:
+  - "other households' holdings, returns or fees"
 
-# Where a skill sends something it cannot resolve. A name, not an address —
-# skills do not send messages.
-# escalate_to: "Omar Abdalla"
+review_required: true
+reviewers:
+  - { checks: "the whole pack", who: "Compliance", required_by: "regulator, not internal preference" }
 
+destination:
+  - { to: "talyx-output/packs", kind: "folder" }
 
-# ───────────────────────────────────────────────────────────────────────────
-# 3. INPUTS — what arrives, and what it reliably contains
-#    A skill that knows the intake email carries the legal name does not ask
-#    you to paste it. Name the inputs you actually get and what is in them.
-# ───────────────────────────────────────────────────────────────────────────
+deadline:
+  - { what: "packs delivered", when: "10 business days after quarter close", set_by: "internal" }
 
-# inputs:
-#   - name: "intake email"
-#     from: "Outlook"
-#     provides: ["client legal name", "address", "contact"]
-#   - name: "agreed scope email"
-#     from: "Outlook"
-#     provides: ["deliverables", "dates"]
-#   - name: "discovery notes"
-#     from: "Teams"
-#     provides: ["requirements", "context"]
-#   - name: "pricing sheet"
-#     from: "Finance/Engagement Pricing.xlsx"
-#     provides: ["approved fees", "payment milestones"]
-
-
-# ───────────────────────────────────────────────────────────────────────────
-# 4. SOURCES — where the material lives, and which copy is the real one
-# ───────────────────────────────────────────────────────────────────────────
-
-# ★ Folders holding material skills should read from. Named, never guessed.
-# sources:
-#   - { path: "Business Development/Templates", holds: "blank templates" }
-#   - { path: "Client Agreements",              holds: "signed agreements, by client" }
-#   - { path: "Finance/Engagement Pricing.xlsx", holds: "approved fees and milestones" }
-
-# When the same document exists in two places, this one wins. Skills flag the
-# conflict rather than silently preferring a copy.
-# authoritative_source: "Business Development/Templates"
-
-# Approved templates. A skill fills the listed fields and changes nothing else.
-# templates:
-#   - { name: "NDA",      file: "NDA.docx",                fills: ["party", "address", "date", "term"] }
-#   - { name: "Proposal", file: "Proposal - Advisory.docx", fills: ["client", "deliverables", "dates", "fees"] }
-#   - { name: "MSA",      file: "MSA.docx",                fills: ["party", "address", "date"] }
-#   - { name: "SOW",      file: "SOW - Advisory.docx",     fills: ["deliverables", "dates", "fees"] }
-
-
-# ───────────────────────────────────────────────────────────────────────────
-# 5. OUTPUT — where files go, what they are called, how they read
-# ───────────────────────────────────────────────────────────────────────────
-
-# Where skills write, relative to the folder you work in. Each skill uses its
-# own subfolder, e.g. <root>/briefs/.
-#
-# Must stay inside the working folder. An absolute path, or one that climbs
-# out, is rejected with an error rather than quietly falling back — a typo
-# cannot scatter your files somewhere you did not intend.
-# output_root: talyx-output            # default: talyx-output
-
-# File naming. Available: {client} {document} {date} {name}
-# naming: "{client}-{document}-{date}"   # default: {name}
-
-# date_format: "YYYY-MM-DD"              # default: YYYY-MM-DD
-
-# ★ How output should read. Free text; skills follow it as a style instruction.
-# tone: >-
-#   Plain and direct. Short sentences. No filler, no salesmanship,
-#   no words like leverage or synergy.
-
-
-# ───────────────────────────────────────────────────────────────────────────
-# 6. GUARDRAILS — the most important section in this file
-#    Everything here is handed back to a person, never resolved by a skill.
-# ───────────────────────────────────────────────────────────────────────────
-
-# ★ Judgements a skill must NOT make, even when the answer looks obvious.
-#   If a task needs one of these, the skill stops and hands it back.
-# never_decide:
-#   - "pricing, discounts, or payment terms"
-#   - "engagement scope"
-#   - "accepting non-standard legal terms"
-#   - "whether a client relationship continues"
-
-# Content a skill must never alter, only fill around.
-# protected:
-#   - "legal clauses in any approved template"
-#   - "signature blocks"
-#   - "approved fee schedules"
-
-# Information that must not appear in anything a skill writes.
-# confidential:
-#   - "other clients' names, rates, or terms"
-#   - "internal margin and cost figures"
-
-
-# ───────────────────────────────────────────────────────────────────────────
-# 7. REVIEW — nothing reaches a client without a person
-#    Skills mark drafts and name reviewers. They never send, publish, or
-#    mark anything final or approved.
-# ───────────────────────────────────────────────────────────────────────────
-
-# review_required: true                  # default: true
-
-# Who checks what, before anything client-facing goes out.
-# reviewers:
-#   - { checks: "scope",            who: "Omar Abdalla" }
-#   - { checks: "commercial terms", who: "CFO" }
-#   - { checks: "legal terms",      who: "Counsel" }
-
-# A line stamped on every draft so nobody mistakes it for a final document.
-# draft_marker: "DRAFT — not for client release until reviews are complete"
-
-
-# ───────────────────────────────────────────────────────────────────────────
-# 8. WHEN A SKILL GETS STUCK
-# ───────────────────────────────────────────────────────────────────────────
-
-# A required fact is missing.
-#   ask   — stop and ask (default)
-#   note  — carry on, and mark the gap plainly in the output
-# on_missing_input: ask
-
-# Two sources disagree.
-#   ask   — stop and ask (default)
-#   note  — record both, flag the conflict, resolve nothing
-# on_conflict: ask
-
-# A source looks out of date.
-#   warn  — use it, say so (default)
-#   stop  — do not use it
-# on_stale_source: warn
+on_check_failed: stop
