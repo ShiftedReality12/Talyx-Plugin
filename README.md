@@ -15,37 +15,35 @@ Start a **new chat** afterwards — plugins do not activate mid-conversation.
 **Marketplaces → talyx → Enable auto-update**. Third-party marketplaces ship with it off.
 Without it, update by hand: `/plugin marketplace update talyx` then `/plugin update talyx-skills`.
 
-## Start here
+## Use it
 
-```
-/talyx-skills:talyx-setup
-```
+Ask for what you need in plain words — *"tidy up these notes"*, *"write me a brief from this
+doc in my Drive"* — and the matching skill runs. No setup. Skills work on documented defaults
+and reach your files through the connectors you already have.
 
-Point it at a completed scoping sheet, or answer five questions. It writes
-`.talyx/config.yaml` — the file every other skill reads. Skills run without it on
-documented defaults; they are far more useful with it.
+## Make it yours
 
-Then confirm the plugin is live:
+Drop your completed scoping sheet into the chat and say *"set up Talyx from this sheet."*
+`talyx-setup` writes `.talyx/config.yaml` in your working folder — your company, your people,
+your rules, what a skill must never decide, who reviews, where output goes — and every skill
+reads it from then on. A later sheet merges in; it never overwrites what is already there.
 
-```
-/talyx-skills:talyx-ping
-```
-
-Prints `TALYX_PLUGIN_OK` and names the environment it is running in.
+To check the plugin is live: `/talyx-skills:talyx-ping` prints `TALYX_PLUGIN_OK` and names the
+environment it is running in.
 
 ## Skills
 
 | Skill | What it does | Writes files |
 |---|---|---|
-| `talyx-setup` | Reads a scoping sheet and writes your config. **Run this first.** | yes |
+| `talyx-setup` | Reads your scoping sheet and writes your config. Drop the sheet in the chat when you have one. | yes |
 | `talyx-format` | Rewrites messy notes into a clean structured document | no |
 | `talyx-brief` | Turns notes into a one-page brief saved to your workspace | yes |
 | `talyx-ping` | Confirms the plugin is installed and names the environment | no |
 
 ## Configuration
 
-One file, `.talyx/config.yaml`, in the folder you work in. Every key is optional.
-See `.talyx/config.example.yaml` for a filled example, and the full key list below.
+One file, `.talyx/config.yaml`, in the folder you work in. Every key is optional. `talyx-setup`
+writes it with comments so you can read and edit it; the full key list is below.
 
 Skills never hardcode your company, folders, people or rules — they read them from that
 file. That is what lets the same skill work for any company without being rewritten, and

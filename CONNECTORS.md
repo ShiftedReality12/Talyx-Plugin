@@ -5,7 +5,8 @@ whatever you have connected in that category does the work. Nothing here is bund
 by Talyx; each connector is yours, authorized by you, and a skill only uses the ones you have.
 
 `.mcp.json` lists the ones below so your AI app can show which are connected and offer to
-connect the rest. A connector you do not use is simply ignored.
+connect the rest. A connector you do not use is simply ignored, and one you have that is
+not listed still works — the list only drives the prompt.
 
 | Connector | Category | How it is reached |
 |---|---|---|
