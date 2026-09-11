@@ -1,18 +1,86 @@
 # Talyx Skills — workspace config
 #
-# Copy to `.talyx/config.yaml` in the folder you work in. All settings are optional;
-# with no config file at all, every skill uses the defaults below.
+# Copy to `.talyx/config.yaml` in the folder you work in. Everything is optional;
+# with no file at all, every skill uses the defaults below.
 #
-# One key per setting a skill actually reads. Nothing speculative lives here.
+# This is the contract every Talyx skill reads. Skills never hardcode a client's
+# name, folders, reviewers or rules — they read them here. That is what makes the
+# same skill work for any company without being rewritten.
+#
+# Two kinds of key:
+#   global      — read by every skill (this file)
+#   <skill>_*   — read by one skill only, added when that skill needs it
+#
+# Anything a skill cannot resolve, it asks about once and does not guess.
 
-# --- Where skills write files ---
-# Any skill that produces a file writes it under this root, in its own subfolder
-# (for example `<root>/briefs/`). Relative to the folder you are working in.
-#
-# Must stay inside the working directory. An absolute path, or one that escapes
-# upward, is rejected with an error rather than falling back to the default —
-# so a typo cannot quietly scatter files somewhere you did not intend.
-#
-# Read by: talyx-brief
 
-# output_root: talyx-output        # default: talyx-output
+# ─────────────────────────────────────────────────────────────────────
+# WHO YOU ARE
+# So skills write in your voice and context instead of asking every run.
+# ─────────────────────────────────────────────────────────────────────
+
+# org_name: "M Worldwide"
+# org_description: "Corporate function consulting suite, not a marketing agency."
+
+# How output should read. Free text — skills follow it as a style instruction.
+# tone: "Plain and direct. No filler. Short sentences."
+
+
+# ─────────────────────────────────────────────────────────────────────
+# WHERE THINGS LIVE
+# ─────────────────────────────────────────────────────────────────────
+
+# Where skills write files, relative to the folder you work in. Each skill uses
+# its own subfolder, e.g. <root>/briefs/.
+#
+# Must stay inside the working folder. An absolute path, or one that climbs out,
+# is rejected with an error rather than quietly falling back — so a typo cannot
+# scatter your files somewhere you did not intend.
+#
+# Read by: any skill that writes a file
+# output_root: talyx-output          # default: talyx-output
+
+# Folders holding the material skills should read from. Named, not guessed.
+# sources:
+#   - "Business Development/Templates"
+#   - "Client Agreements"
+
+
+# ─────────────────────────────────────────────────────────────────────
+# WHAT A SKILL MUST NEVER DECIDE
+# The single most important section. Anything listed here is returned to a
+# person, never resolved by the skill — even when it could make a good guess.
+# ─────────────────────────────────────────────────────────────────────
+
+# never_decide:
+#   - "pricing, discounts, or payment terms"
+#   - "engagement scope"
+#   - "accepting non-standard legal terms"
+
+
+# ─────────────────────────────────────────────────────────────────────
+# REVIEW BEFORE ANYTHING LEAVES
+# Skills mark output as draft and name the required reviewers. They do not
+# send, publish, or mark anything final.
+# ─────────────────────────────────────────────────────────────────────
+
+# review_required: true             # default: true
+# reviewers:
+#   - { checks: "scope",            who: "Omar" }
+#   - { checks: "commercial terms", who: "CFO" }
+#   - { checks: "legal",            who: "counsel" }
+
+
+# ─────────────────────────────────────────────────────────────────────
+# WHEN A SKILL GETS STUCK
+# ─────────────────────────────────────────────────────────────────────
+
+# A required fact is missing.
+#   ask    — stop and ask (default)
+#   note   — carry on and mark the gap in the output
+# on_missing_input: ask
+
+# Two sources disagree.
+#   ask    — stop and ask (default)
+#   note   — record both and mark the conflict
+# on_conflict: ask

@@ -1,5 +1,6 @@
 ---
 name: talyx-ping
+talyx-config: none
 description: Confirm the Talyx plugin is installed and report which environment it is running in. Use when checking the plugin loaded, verifying a fresh install, or troubleshooting where skills are mounted.
 ---
 
