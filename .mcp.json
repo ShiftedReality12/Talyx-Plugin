@@ -1,0 +1,36 @@
+{
+  "mcpServers": {
+    "google drive": {
+      "type": "http",
+      "url": ""
+    },
+    "gmail": {
+      "type": "http",
+      "url": ""
+    },
+    "google calendar": {
+      "type": "http",
+      "url": ""
+    },
+    "microsoft 365": {
+      "type": "http",
+      "url": ""
+    },
+    "quickbooks": {
+      "type": "http",
+      "url": "https://ai-inc.quickbooks.intuit.com/v1/mcp"
+    },
+    "docusign": {
+      "type": "http",
+      "url": "https://mcp.docusign.com/mcp"
+    },
+    "box": {
+      "type": "http",
+      "url": "https://mcp.box.com"
+    },
+    "slack": {
+      "type": "http",
+      "url": "https://mcp.slack.com/mcp"
+    }
+  }
+}

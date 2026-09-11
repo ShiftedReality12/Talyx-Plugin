@@ -77,9 +77,10 @@ next build overwrites them.
 
 ## Notes
 
-No MCP servers, no hooks, no sub-agents, no bundled executables, no network calls. Skills
+No servers of ours, no hooks, no sub-agents, no bundled executables, no network calls. Skills
 are plain markdown read from the plugin cache; nothing is written into your projects. A
-skill can still reach your material through connectors you have already authorized.
+skill reaches your material through connectors you have already authorized — `.mcp.json`
+lists the common ones so your app can show which are connected; see `CONNECTORS.md`.
 
 Skills read only inside their own directory and never above it, because plugin layouts
 differ by host.
