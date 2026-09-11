@@ -14,10 +14,6 @@ not listed still works — the list only drives the prompt.
 | gmail | Email | your Claude connector |
 | google calendar | Calendar | your Claude connector |
 | microsoft 365 | Files, Email, Calendar (SharePoint · Outlook · Teams) | your Claude connector |
-| quickbooks | Accounting | the vendor's own endpoint, your account |
-| docusign | Signatures | the vendor's own endpoint, your account |
-| box | Files | the vendor's own endpoint, your account |
-| slack | Chat | the vendor's own endpoint, your account |
 
 Systems without a connector (a land system, a portfolio platform, a regulator's portal)
 are named in your config as `sources` and reached by export or upload.
