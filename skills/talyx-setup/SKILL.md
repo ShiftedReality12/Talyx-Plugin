@@ -107,5 +107,5 @@ A `deadline` never justifies skipping a check or a review. Report the risk inste
 **When stuck** `on_missing_input` `on_conflict` `on_check_failed` `on_stale_source`
 Follow the setting, default in brackets. Never adjust a value to make a check pass.
 
-Defaults: `tone` plain and direct · `review_required` true · `date_format` YYYY-MM-DD · `on_missing_input` ask · `on_conflict` ask · `on_check_failed` stop · `on_stale_source` warn
+Defaults: `tone` plain and direct · `review_required` true · `destination` talyx-output · `date_format` YYYY-MM-DD · `on_missing_input` ask · `on_conflict` ask · `on_check_failed` stop · `on_stale_source` warn
 <!-- talyx-config:end -->

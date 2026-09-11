@@ -1,6 +1,6 @@
 {
   "name": "talyx-skills",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "Talyx skills for turning your own knowledge into repeatable work",
   "author": {
     "name": "Talyx"
@@ -14,25 +14,5 @@
     "knowledge",
     "intelligence"
   ],
-  "skills": "./skills/",
-  "interface": {
-    "displayName": "Talyx Skills",
-    "shortDescription": "Turn your own knowledge into repeatable work",
-    "longDescription": "Talyx packages the judgment your best people carry into skills you can run in your own AI environment. Install once; the skills work on your own files and stay with you.",
-    "developerName": "Talyx",
-    "category": "Productivity",
-    "capabilities": [
-      "Interactive",
-      "Read",
-      "Write"
-    ],
-    "websiteURL": "https://talyx.ai",
-    "defaultPrompt": [
-      "Check the Talyx plugin is installed",
-      "Show me which Talyx skills are available"
-    ],
-    "screenshots": [],
-    "brandColor": "#0F2744",
-    "logo": "./assets/logo.png"
-  }
+  "skills": "./skills/"
 }

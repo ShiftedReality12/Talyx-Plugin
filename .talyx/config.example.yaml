@@ -4,60 +4,60 @@
 # skills use documented defaults for anything absent and never invent a value.
 # `/talyx-setup` writes this for you from a completed scoping sheet.
 #
-# Below is one real example — a wealth manager producing quarterly client packs.
-# Yours will look nothing like it. The shape is the same.
+# Below is one real-shaped example — a commercial insurance brokerage preparing
+# policy renewal proposals. Yours will look nothing like it. The shape is the same.
 
-org_name: "Ridgeline Private Wealth"
-org_description: "Fee-only fiduciary advisory. Not a broker-dealer."
-tone: "Plain and factual. No salesmanship. Never imply a future return."
+org_name: "Northgate Commercial Insurance"
+org_description: "Independent commercial lines brokerage. We place cover; we do not underwrite it."
+tone: "Plain and specific. Name the carrier, the limit and the premium. No hedging."
 
 terminology:
-  customer: "client"
-  portfolio: "household"
+  customer: "insured"
+  quote: "proposal"
 
 people:
-  - { name: "Marguerite Oyelaran", role: "Senior Advisor", owns: "pack assembly" }
-  - { name: "Compliance",          role: "Compliance",     owns: "sign-off" }
-escalate_to: ["Marguerite Oyelaran", "Compliance"]
-rule_authority: ["Compliance"]
+  - { name: "Rosa Delgado",   role: "Account Manager",    owns: "renewal proposals" }
+  - { name: "Jim Hartley",    role: "Principal / Broker", owns: "final review before anything goes to an insured" }
+escalate_to: ["Rosa Delgado", "Jim Hartley"]
+rule_authority: ["Jim Hartley"]
 
 inputs:
-  - { name: "custodian data", from: "Orion", provides: ["holdings", "performance", "fees"] }
-  - { name: "meeting dates",  from: "Redtail", provides: ["household", "meeting date"] }
+  - { name: "carrier renewal terms", from: "carrier portals (email PDFs)", provides: ["limits", "premium", "exclusions"] }
+  - { name: "expiring policy",       from: "Applied Epic",                  provides: ["current limits", "endorsements", "claims history"] }
 
 sources:
-  - { path: "Orion", holds: "system of record for all figures", authoritative: true }
-  - { path: "Model Targets Q3.xlsx", holds: "target allocations" }
-  - { path: "Compliance/Approved Language.docx", holds: "disclosure text" }
+  - { path: "Applied Epic", holds: "policy of record for every insured", authoritative: true }
+  - { path: "Renewals 2026/Carrier Terms", holds: "this year's quotes, one folder per insured" }
+  - { path: "Templates/Proposal Cover Letter.docx", holds: "the approved cover letter" }
 
-for_each: "household"
+for_each: "insured"
 
 rules:
-  - { rule: "Every figure must trace to Orion", because: "it is the system of record" }
-  - { rule: "Approved disclosure text is used verbatim", because: "regulator-approved" }
-  - { rule: "Correctness beats the deadline", beats: "quarter-end deadline" }
+  - { rule: "Every limit and premium in the proposal matches the carrier's written terms", because: "the carrier's PDF is what binds" }
+  - { rule: "Show the expiring and the renewal side by side, always", because: "insureds ask 'what changed'" }
+  - { rule: "Never drop an exclusion from the summary to make the renewal look better", beats: "keeping the proposal to one page" }
 
 verify:
-  - { check: "every figure",     against: "Orion",              match: "to the cent" }
-  - { check: "allocation drift", against: "Model Targets Q3.xlsx", match: "exact" }
+  - { check: "every limit and premium", against: "the carrier's renewal terms PDF", match: "exact" }
+  - { check: "expiring limits",         against: "Applied Epic",                   match: "exact" }
 
 never_decide:
-  - "whether drift warrants a rebalance"
+  - "which carrier's terms to recommend when two are close"
 never_produce:
-  - "a recommendation, projection, or performance forecast"
+  - "a binding confirmation or anything that reads as bound cover"
 protected:
-  - "approved disclosure language — not one comma"
+  - "the carrier's exclusion wording — quote it, never paraphrase it"
 confidential:
-  - "other households' holdings, returns or fees"
+  - "other insureds' premiums and loss runs"
 
 review_required: true
 reviewers:
-  - { checks: "the whole pack", who: "Compliance", required_by: "regulator, not internal preference" }
+  - { checks: "the whole proposal", who: "Jim Hartley", required_by: "internal — the principal signs every proposal" }
 
 destination:
-  - { to: "talyx-output/packs", kind: "folder" }
+  - { to: "talyx-output/renewals", kind: "folder" }
 
 deadline:
-  - { what: "packs delivered", when: "10 business days after quarter close", set_by: "internal" }
+  - { what: "proposal to the insured", when: "30 days before the policy expiry date", set_by: "internal" }
 
 on_check_failed: stop

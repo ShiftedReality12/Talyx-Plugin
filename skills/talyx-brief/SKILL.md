@@ -20,23 +20,11 @@ user is told exactly where it landed.
 Anything left after removing tokens is the source text, or a path to it. If nothing
 remains, use the conversation.
 
-## Where the file goes
-
-<!-- talyx-output-root:start -->
-**Resolve the output root before composing any path.**
-
-- **Read** `output_root` from `.talyx/config.yaml` in the current working directory.
-  Unset, missing file, or unreadable → the root is `talyx-output`.
-- **Validate** a set value: a relative directory that stays inside the working directory.
-  An absolute path, or one that escapes upward, is an error — name the key and the value
-  and stop. Never silently fall back to the default after rejecting a value.
-- **Use** it as the sole location. Create it if absent. Compose the path as
-  `<root>/briefs/<name>.md`.
-<!-- talyx-output-root:end -->
 
 ## Steps
 
-1. Resolve the output root using the block above.
+1. Resolve where the file goes: the folder named by `destination` in config, default
+   `talyx-output` (see Configuration below). The path is `<folder>/briefs/<name>.md`.
 
 2. Read the source text. If given a path, read that file.
 
@@ -52,7 +40,7 @@ remains, use the conversation.
 4. **Every line must trace to the source.** No recommendations, no invented owners, no
    invented dates. Where the source is unclear, say so in the brief instead of resolving it.
 
-5. Save to `<root>/briefs/<name>.md`. If the file exists, do not overwrite it silently —
+5. Save to `<folder>/briefs/<name>.md`. If the file exists, do not overwrite it silently —
    append `-2`, `-3` and so on, and say which name was used.
 
 6. Report the **full path** of the file written, and its approximate length. If the write
@@ -97,5 +85,5 @@ A `deadline` never justifies skipping a check or a review. Report the risk inste
 **When stuck** `on_missing_input` `on_conflict` `on_check_failed` `on_stale_source`
 Follow the setting, default in brackets. Never adjust a value to make a check pass.
 
-Defaults: `tone` plain and direct · `review_required` true · `date_format` YYYY-MM-DD · `on_missing_input` ask · `on_conflict` ask · `on_check_failed` stop · `on_stale_source` warn
+Defaults: `tone` plain and direct · `review_required` true · `destination` talyx-output · `date_format` YYYY-MM-DD · `on_missing_input` ask · `on_conflict` ask · `on_check_failed` stop · `on_stale_source` warn
 <!-- talyx-config:end -->

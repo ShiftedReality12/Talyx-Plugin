@@ -116,7 +116,7 @@ differ by host.
 | `review_required` | Mark the result as needing review and name who must check it. Never send, file, publish, or call anything final or approved. | `true` |
 | `reviewers` ★ | Who checks what, and whether it is required by an outside body rather than internal preference. State that reason on the output. | — |
 | **Output** | *where the result goes and what proves it arrived* | |
-| `destination` | Where the result goes: a folder, a system, or a submission to an outside body. Each may name a `receipt` — a confirmation number or read-back that proves arrival. Without a receipt, report it as sent but unconfirmed. A folder path must stay inside the working folder. | — |
+| `destination` | Where the result goes: a folder, a system, or a submission to an outside body. Each may name a `receipt` — a confirmation number or read-back that proves arrival. Without a receipt, report it as sent but unconfirmed. Default is the folder `talyx-output` inside the working folder. A folder path must stay inside the working folder. | `talyx-output` |
 | `date_format` | How dates are written. | `YYYY-MM-DD` |
 | **Timing** | *when it is due and what happens if it is late* | |
 | `deadline` | When work is due, who sets it, and the consequence of missing it. A deadline never justifies skipping a check or a review — report the risk instead. | — |
