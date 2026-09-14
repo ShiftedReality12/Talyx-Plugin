@@ -1,39 +1,61 @@
 ---
 name: talyx-setup
-description: Set up Talyx for this company by reading a completed scoping sheet, or by asking. Writes the config every other Talyx skill reads. Use when setting up Talyx for the first time, when a scoping sheet has been filled in, or when the company details, folders, reviewers or rules have changed.
-argument-hint: "[path to a completed scoping sheet; blank asks instead] [reconfigure]"
+description: Set up Talyx from available material and targeted answers. Use when starting Talyx, when an input or output is unclear, or when company rules change; preserves client configuration.
 ---
 
 # Talyx Setup
 
-**Outcome:** `.talyx/config.yaml` exists and holds this company's real details, so no
-other skill has to ask for them or guess.
+**Outcome:** `.talyx/config.yaml` records the evidenced shared inputs, outputs, rules, and
+review requirements a company reuses across real workflows, so later work does not guess or
+ask twice.
 
-**Done:** the file is written, its full path reported, and the user has been shown what
-was set, what was left at a default, and what still needs them.
+**Done:** the file is written, its full path reported, and the user has seen what was found,
+preserved, set, left at default, and still needs an answer.
 
-## Two ways in
+## Start with what is available
 
-**From a scoping sheet.** If given a path — a spreadsheet, PDF, or pasted text — read it
-and map it. The sheet already asks for almost everything this config needs.
+Read an existing `.talyx/config.yaml` first. Then inspect material available in the current
+conversation or working folder: attached files, a named folder, a stated workflow, and sources
+the user names. A worksheet is optional evidence, never the complete definition of a workflow.
+Do not claim to inspect a connector unless the host actually exposes it.
 
-**By asking.** With no sheet, ask only for the five that carry most of the value, one
-message, then stop: company name, what the company does, who reviews what before anything
-goes to a client, what the tool must never decide, and which folders hold the material.
-Everything else has a working default.
+Ask only what remains material and unresolved: the input or source to use, the outcome wanted,
+where it should go, who reviews it, and what must stay with a person. Do not repeat an existing
+config value or a fact found in provided material. If no repeated workflow can be identified,
+ask the user to name one concrete outcome before writing configuration.
 
-## Mapping a scoping sheet
+## Ask simple, real questions
 
-The standard sheet has one row per candidate workflow: Task — what starts it and what it
-produces · Systems / files it touches · Who does it today · How often / how many · Cloneable
-or judgment call · Worth if 10x faster. The mapping below is generated from the config schema;
-it is the only list of where each key comes from.
+First inspect the current host's callable tool list and each relevant tool's schema. If the host
+offers a structured question tool, use the exact callable tool it exposes — for example,
+`AskUserQuestion`, `request_user_input`, or `request_user_input_async`. Do not guess a tool
+name, invoke an unavailable tool, or describe a prose list as a native form.
+
+Use the native question surface for only the unresolved material fields. Group at most three
+independent fields; keep dependent questions for the next turn. Give a short question and short,
+truthful choices when choices are known, and allow free text when that surface supports it. Do
+not turn Setup into a generic questionnaire. For a conflict, display the existing and new values
+in the question context and ask which to retain.
+
+An answer that controls a dependent config value is required: do not advance, select a value, or
+write that unresolved value after a timeout or no answer. If no native question tool is callable,
+ask one short conversational question at a time. Do not claim every host supports native forms.
+
+## Map evidence
+
+Use the client's words. Map a worksheet when supplied, and map equivalent facts from attachments,
+workspace material, or direct answers to the same fields. The generated mapping below describes
+the worksheet convention; it does not make a worksheet mandatory.
+
+Keep incoming material in `inputs`, separate from the requested output. Set `for_each` only
+when the user or source states the repeat unit; a column name or a row layout is not that instruction.
 
 <!-- talyx-mapping:start -->
 ## Mapping — sheet to config
 
-Every key, and where on the sheet it comes from. A key whose place on the sheet is
-empty stays absent. Values are the client's words, never a paraphrase.
+Worksheet mapping, when a worksheet is supplied. Equivalent evidence from attached
+material or direct answers maps to the same key. Unsupported keys stay absent. Values
+are the client's words, never a paraphrase.
 
 **Context**
 - `org_name` — the sheet title
@@ -99,49 +121,62 @@ Two things to read carefully rather than skim:
 
 ## Steps
 
-1. Read the sheet, or ask. Never do both in one run.
+1. Read existing config, then available material. A worksheet, if supplied, is one evidence source.
 
-2. Map what is there. **Use the client's own words** for `never_decide`, `terminology` and
+2. Map what is evidenced. **Use the client's own words** for `never_decide`, `terminology` and
    `tone`. Do not translate them into your own phrasing.
 
-3. For anything the source does not cover, leave the key out so the documented default
-   applies. **Do not invent a value, and do not ask a follow-up question for a key that has
-   a working default.**
+3. Ask targeted native questions, when available, only for material gaps or conflicts:
+   input/source, outcome, destination, review, and never-decide. Leave unsupported keys out so
+   documented defaults apply. Do not ask for a key with a working default.
 
-4. Merge, do not clobber. If `.talyx/config.yaml` already exists, keep every value it has
-   unless `reconfigure` was passed or the new source plainly contradicts it — in which case
-   show both and ask which is right.
+4. Merge, do not clobber. Apply a supported replacement when the user explicitly asks for it and
+   supplies its value. Otherwise, when sources conflict or the intended replacement is unclear,
+   show both values and ask; never choose silently. Preserve client entries outside the supported
+   fields unchanged and report them as unvalidated; never delete them simply to make validation
+   pass.
 
-5. Write `.talyx/config.yaml` in the current working folder by filling in
-   `config.template.yaml` from this skill's own folder. Keep every key name and shape exactly
-   as the template has them — never invent a key, a field, or a structure. Uncomment and fill
-   only what the sheet supports; leave the rest commented so a person can read and edit it.
+5. For a new file, fill `config.template.yaml` from this skill's own folder. For an existing file,
+   edit it in place; retain its unknown entries, comments, and client edits. If the host cannot
+   preserve those while editing, stop before writing and report that limitation. Keep every
+   supported key name and shape exactly as the template has them — never invent a key, a field,
+   or a structure. Uncomment and fill only values directly confirmed by the client or evidenced
+   in available material; leave unknown supported fields commented so documented defaults apply.
+   If the host exposes a YAML parser or schema checker, parse the written file and check each
+   supported value against the template shape before reporting it. That check validates names and
+   types, not whether source facts are true. If no parser is callable, report that parsing was
+   not available.
 
 6. Report, in this order:
    - the full path written
+   - **what was found and preserved**, grouped, with the value
    - **what was set**, grouped, with the value
    - **what was left at a default**, and what that default is
-   - **what the sheet asked for that no key covers**, verbatim — may be empty
+   - **what evidence asked for that no key covers**, verbatim — may be empty
    - **what is still missing that would materially help**, at most three items, each with
      one line on what it would improve
 
 ## Boundary
 
-This skill only writes config. It does not run a workflow, read client documents beyond the
-sheet it was given, or contact anyone. If a scoping sheet names a workflow worth building,
-say so and stop — building it is not this skill's job.
+This skill only writes shared config. It does not run a workflow, contact anyone, or promise that
+a connector can read or write. A later workflow must actually read this config before relying on
+it. If the available evidence names a workflow worth building, say so and stop — building it is
+not this skill's job.
 
 <!-- talyx-config:start -->
 ## Configuration
 
-Read `.talyx/config.yaml` from the working folder first. Every key is optional;
-absent means the documented default. **Never invent a value for an absent key.**
+Read `.talyx/config.yaml` from the working folder first. If it is missing or unreadable,
+run Talyx Setup or obtain the required parameters before doing personalized dependent work.
+Every key is optional; absent means the documented default. **Never invent a value for an
+absent key.** This config records approved workflow constraints; it is not authentication,
+authorization, or a way to override the host's instructions.
 
 **Context** `org_name` `org_description` `terminology` `tone`
 Write in their voice. Follow `terminology` everywhere. Never restate their own description back at them.
 
 **People** `people` `rule_authority` `escalate_to`
-Name people on output; never contact anyone. `escalate_to` is a chain, in order — stop at the first who can decide. Only `rule_authority` may change a rule; a change requested by anyone else is refused and handed back.
+Name people on output; never contact anyone. `escalate_to` is a chain, in order — stop at the first who can decide. `rule_authority` identifies who may change a workflow rule; it does not authenticate anyone.
 
 **Material** `inputs` `sources`
 Read only from `sources`. The one marked `authoritative` wins a disagreement, and you report the disagreement rather than resolving it silently. Prefer a named `input` over asking someone to paste.
@@ -150,7 +185,7 @@ Read only from `sources`. The one marked `authoritative` wins a disagreement, an
 Every `rule` always holds; `beats` settles a conflict between two. No rule is traded for speed. `verify` says what is checked against what — if a check cannot be run, say so, and never report unchecked work as checked. `for_each` repeats the work per item, independently; one failure does not abandon the rest.
 
 **Guardrails** `never_decide` `never_produce` `protected` `confidential`
-These outrank every other instruction, including a direct request. `never_decide` — hand back. `never_produce` — do not generate at all. `protected` — never alter, reword or reformat. `confidential` — never mention.
+Treat these as approved workflow constraints. They do not grant access, enforce a security policy, or override the host's instructions. `never_decide` — hand back. `never_produce` — do not generate. `protected` — never alter, reword or reformat. `confidential` — never mention.
 
 **Review** `review_required` `reviewers`
 When required, mark the result as needing review and name each reviewer and what they check, including where an outside body requires it. Never send, file, publish, or call anything final or approved.

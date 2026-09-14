@@ -1,3 +1,22 @@
+# Talyx company setup
+
+This file carries the same configuration parameters as Talyx's `.talyx/config.yaml`.
+It is packaged as Markdown for apps that use Knowledge files. Setup fills the configuration;
+you do not need to complete this template yourself.
+
+## Current configuration
+
+```yaml
+{}
+```
+
+## Parameter reference - do not fill this section
+
+The following commented template is generated from Talyx's canonical schema. Copy only
+evidenced fields into Current configuration, keeping their names and types. Empty or unknown
+fields stay absent. Comments and example values below are not company facts.
+
+```yaml
 # .talyx/config.yaml — written by talyx-setup from available evidence.
 # Every key is optional. A key unsupported by the available evidence stays commented out;
 # the skills then use its documented default. Values are the client's own words.
@@ -58,3 +77,36 @@
 # on_conflict: ask          # ask | note
 # on_check_failed: stop     # stop | note
 # on_stale_source: warn     # warn | stop
+```
+
+## Types and defaults
+
+- `org_name`: string. Default: unset.
+- `org_description`: string. Default: unset.
+- `terminology`: map. Default: unset.
+- `tone`: string. Default: plain and direct.
+- `people`: list<object>. Default: unset.
+- `rule_authority`: list<string>. Default: unset.
+- `escalate_to`: list<string>. Default: unset.
+- `inputs`: list<object>. Default: unset.
+- `sources`: list<object>. Default: unset.
+- `rules`: list<object>. Default: unset.
+- `verify`: list<object>. Default: unset.
+- `for_each`: string. Default: unset.
+- `never_decide`: list<string>. Default: unset.
+- `never_produce`: list<string>. Default: unset.
+- `protected`: list<string>. Default: unset.
+- `confidential`: list<string>. Default: unset.
+- `review_required`: boolean. Default: true.
+- `reviewers`: list<object>. Default: unset.
+- `destination`: list<object>. Default: talyx-output.
+- `date_format`: string. Default: YYYY-MM-DD.
+- `deadline`: list<object>. Default: unset.
+- `on_missing_input`: ask | note. Default: ask.
+- `on_conflict`: ask | note. Default: ask.
+- `on_check_failed`: stop | note. Default: stop.
+- `on_stale_source`: warn | stop. Default: warn.
+
+## Shared use
+
+The YAML under Current configuration is the company configuration. Later Talyx skills must read it before personalized work. Making this file available to another Gem or agent requires adding the same current file to its Knowledge; it is not automatic. In a file-capable Talyx workspace, save that YAML as `.talyx/config.yaml`. Preserve existing values and unknown extension keys; do not treat a schema example as an answer.

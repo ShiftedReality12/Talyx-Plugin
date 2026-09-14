@@ -1,44 +1,60 @@
 # Talyx Skills
 
-Talyx skills, packaged so they load into your own AI environment in one step.
+The free Talyx plugin provides reusable skills for work with your own material and existing
+tools. Setup creates the shared company configuration those skills use.
+After the requested placeholder cleanup, this local preview contains Setup only; the next
+workflow package is pending. That describes this preview's inventory, not the scope of the free product.
 
-## Install
+## Choose your app
 
-```
+Open your one-page guide and follow the steps. Talyx is free; your AI app's plan and access are separate.
+
+| App | One-page guide | What to use |
+|---|---|---|
+| Claude desktop with Cowork | [Install guide](docs/install/talyx-claude-cowork-one-pager.pdf) | Add the Talyx marketplace, install the plugin, then start Setup. |
+| ChatGPT desktop with Work locally | [Install guide](docs/install/talyx-chatgpt-work-one-pager.pdf) | **Plugins → Add → Add a marketplace**, then install Talyx. |
+| Perplexity Computer | [Upload guide](docs/install/talyx-perplexity-computer-one-pager.pdf) | Upload [talyx-setup.zip](docs/install/talyx-setup.zip). |
+| Gemini Apps | [Gem guide](docs/install/talyx-gemini-apps-one-pager.pdf) | Copy the entire [instruction text](docs/install/gemini-gem-instructions.txt), then upload the supplied [company setup file](docs/install/talyx-company-setup.md). |
+| Microsoft 365 Copilot Agent Builder | [Agent guide](docs/install/talyx-m365-copilot-agent-builder-one-pager.pdf) | Use the [agent instructions](docs/install/m365-copilot-agent-builder-instructions.md) and [company configuration file](docs/install/talyx-company-setup.txt). |
+
+Gemini and Microsoft 365 use prepared adaptations, with a manual step to save and reuse the
+configuration in Knowledge. They are not repository-plugin installations. These guides were
+checked against documentation; fresh installation and configuration reuse in each app remain
+to be tested. Microsoft 365 requires an eligible work tenant, not consumer or GitHub Copilot.
+
+For Gemini, create your Gem once at **gemini.google.com → Settings and help → Gems**.
+Use the same Google account on your other devices. Mobile: **Menu → Gems → Talyx Setup**.
+If your desktop or mobile app does not show Gems, open Gemini in your browser. Native desktop
+Gem access remains unverified; Gemini Live does not support Gems. The [Gemini instructions and
+file-saving help](docs/install/gemini-gem-instructions.md) explain how to retain your setup.
+
+For Claude Code, enter these commands inside its conversation:
+
+```text
 /plugin marketplace add ShiftedReality12/Talyx-Plugin
 /plugin install talyx-skills@talyx
+/reload-plugins
+/talyx-skills:talyx-setup
 ```
 
-Start a **new chat** afterwards — plugins do not activate mid-conversation.
+## Start here
 
-**Turn on auto-update once**, or you will never see a new version: run `/plugin`, choose
-**Marketplaces → talyx → Enable auto-update**. Third-party marketplaces ship with it off.
-Without it, update by hand: `/plugin marketplace update talyx` then `/plugin update talyx-skills`.
+Run `talyx-setup` first. It reads what is already available in your workspace or chat, including
+an optional worksheet, then asks only for unresolved inputs, outcome, destination, review, and
+guardrails. It uses the app's real question tool where available, with short conversational
+questions otherwise. It fills the existing schema in `.talyx/config.yaml` and preserves existing
+values, comments and client extensions. Explicit updates apply without asking twice; ambiguous
+conflicts are put back to you. Review the reported values before relying on them.
 
-## Use it
-
-Ask for what you need in plain words — *"tidy up these notes"*, *"write me a brief from this
-doc in my Drive"* — and the matching skill runs. No setup. Skills work on documented defaults
-and reach your files through the connectors you already have.
-
-## Make it yours
-
-Drop your completed scoping sheet into the chat and say *"set up Talyx from this sheet."*
-`talyx-setup` writes `.talyx/config.yaml` in your working folder — your company, your people,
-your rules, what a skill must never decide, who reviews, where output goes — and every skill
-reads it from then on. A later sheet merges in; it never overwrites what is already there.
-
-To check the plugin is live: `/talyx-skills:talyx-ping` prints `TALYX_PLUGIN_OK` and names the
-environment it is running in.
+Setup is free. It establishes reusable configuration; it does not run a workflow or claim a
+connector can access material the host has not exposed. A released client workflow is not yet
+included in this package.
 
 ## Skills
 
 | Skill | What it does | Writes files |
 |---|---|---|
-| `talyx-setup` | Reads your scoping sheet and writes your config. Drop the sheet in the chat when you have one. | yes |
-| `talyx-format` | Rewrites messy notes into a clean structured document | no |
-| `talyx-brief` | Turns notes into a one-page brief saved to your workspace | yes |
-| `talyx-ping` | Confirms the plugin is installed and names the environment | no |
+| `talyx-setup` | Discovers available material, asks only material gaps, and writes reusable configuration. A worksheet is optional. | yes |
 
 ## Configuration
 
@@ -49,23 +65,7 @@ Skills never hardcode your company, folders, people or rules — they read them 
 file. That is what lets the same skill work for any company without being rewritten, and
 what stops a skill from making a call that is yours to make.
 
-## Supported hosts
-
-One `skills/` tree serves every host. Each reads its own manifest folder.
-
-| Host | Manifest | Verified |
-|---|---|---|
-| Claude Code · Cowork · Chat | `.claude-plugin/` | yes — installed and run |
-| ChatGPT Work · Codex | `.codex-plugin/` | yes — installed and run |
-| Grok Build | `.grok-plugin/` | yes — installed and run |
-| Cursor | `.cursor-plugin/` | yes — installed and run |
-| Devin | `.devin-plugin/` | manifest written, not installed |
-
-**ChatGPT chat** resolves plugins from the public directory only, so a privately installed
-plugin is not visible there. Work and Codex read the local install and are fine.
-
-**Perplexity** has no plugin format — skills are uploaded one at a time as ZIP bundles,
-each holding exactly one top-level folder with one `SKILL.md`. Built separately.
+Other generated manifests remain development artifacts and are not client-install promises.
 
 ## Manifests are generated
 
@@ -75,17 +75,14 @@ next build overwrites them.
 
 ## Notes
 
-No servers of ours, no hooks, no sub-agents, no bundled executables, no network calls. Skills
-are plain markdown read from the plugin cache; nothing is written into your projects. A
-skill reaches your material through connectors you have already authorized — `.mcp.json`
-lists the common ones so your app can show which are connected; see `CONNECTORS.md`.
-
-Skills read only inside their own directory and never above it, because plugin layouts
-differ by host.
+This package adds no server, hooks, bundled executable or connector endpoints. Setup may use
+material already available through your app and its authorized tools. It does not install or
+authorize connectors. Bundled resources live inside the skill folder; your company configuration
+lives in the working folder. Schema checks validate structure, not the truth of source facts.
 
 ## Every config key
 
-★ marks the five worth filling first.
+★ marks useful starting parameters; Setup asks only for information the current work needs.
 
 <!-- config-reference:start -->
 | Key | What it does | Default |
@@ -97,7 +94,7 @@ differ by host.
 | `tone` | Style instruction for anything written. | `plain and direct` |
 | **People** | *who owns what; skills name them, never contact them* | |
 | `people` | Name, role, what each owns. Name them on output; never contact anyone. | — |
-| `rule_authority` | Who may change a rule here. A change requested by anyone else is refused and handed back. | — |
+| `rule_authority` | Recorded owner for changes to a workflow rule. This is not authentication or access control. | — |
 | `escalate_to` | Escalation chain, in order. Stop at the first person who can decide. | — |
 | **Material** | *what arrives and where the truth lives* | |
 | `inputs` ★ | What arrives, from where, and which facts it reliably carries. Prefer a named input over asking someone to paste. | — |
@@ -106,7 +103,7 @@ differ by host.
 | `rules` ★ | What must always hold, in the client's own words. Each may carry `because` and `beats` to settle a conflict with another rule. A rule is never traded away for speed or a deadline. | — |
 | `verify` ★ | What is checked against what, and how exactly it must match. If a check cannot be run, say so — never report unchecked work as checked. | — |
 | `for_each` | The thing the work repeats over — one per client, lease, household. Each run is independent; one failure does not abandon the rest. | — |
-| **Guardrails** | *outranks every other instruction, including a direct request* | |
+| **Guardrails** | *constraints for work prepared from this configuration* | |
 | `never_decide` ★ | Judgements to hand back to a person, even when the answer looks obvious and even when asked directly. | — |
 | `never_produce` | Kinds of output never to generate at all — a recommendation, a projection, a forecast. Different from a judgement: refusing to decide is not enough if the artefact itself is forbidden. | — |
 | `protected` | Content that may be filled around but never altered, reworded or reformatted. | — |
