@@ -14,15 +14,15 @@ are the client's words, never a paraphrase.
 
 **People**
 - `people` — Who does it today — each name and what they own, as written; no role the sheet did not state
-- `rule_authority` — only if the sheet says who may change a rule
-- `escalate_to` — handoffs in Who does it today or the judgment column — in order, with any condition kept
+- `rule_authority` — only an explicit rule-change owner, with any topic restriction preserved; if a bare name would broaden limited authority, keep the exact scoped requirement in rules instead
+- `escalate_to` — one actual escalation chain, in order; keep separate conditional routes verbatim in rules instead of flattening them into one chain
 
 **Material**
 - `inputs` — Task (what starts it) and Systems — what arrives and from where
 - `sources` — Systems / files it touches — every system named; `authoritative` only if the sheet says which wins
 
 **The work**
-- `rules` — the judgment column — every always / never / must, in their words; a demand that fits no key goes here verbatim and is named as uncovered
+- `rules` — standing requirements in the client’s words; exclude workload snapshots, effort estimates, ages and temporary setup choices unless an explicit limit or quota makes them a rule. Preserve requirements without a dedicated field here verbatim, and name any missing capability
 - `verify` — "has a right answer in X" — what is checked against what
 - `for_each` — How often / how many — the thing the work repeats over (client, lease, household)
 
@@ -30,7 +30,7 @@ are the client's words, never a paraphrase.
 - `never_decide` — the judgment column — whatever must stay with a person, in their words
 - `never_produce` — anything the sheet says the tool must never generate
 - `protected` — anything that may not be reworded
-- `confidential` — anything that must not appear in output
+- `confidential` — unconditional exclusions from all output; preserve conditional disclosure limits verbatim in rules rather than broadening them
 
 **Review**
 - `review_required` — true when any review wording exists

@@ -14,7 +14,7 @@
 # people:
 #   - { name: "<name>", role: "<role, only if stated>", owns: "<what they own, as written>" }
 # rule_authority: ["<who may change a rule>"]
-# escalate_to: ["<first>", "<then>"]          # in order; keep any condition in the name, e.g. "Beth Cantu — only if the RRC issues a notice"
+# escalate_to: ["<first>", "<then>"]          # one actual ordered chain; keep separate conditional routes in rules
 
 # ---- Material — what arrives and where the truth lives
 # inputs:

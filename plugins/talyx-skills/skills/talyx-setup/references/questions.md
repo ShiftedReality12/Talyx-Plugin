@@ -21,15 +21,16 @@ because a file exists. Explicit no preference, use defaults or later answers are
 **Ask:** What recurring task would you like help with, and what should it produce?
 
 - **Fields:** Context for question routing only; no stored config key.
-- **Ask when:** A particular task was mentioned but its intended result is still unclear and needed to target questions. Skip when already answered, when collecting general company preferences, or during an unrelated targeted update. Never impose a workflow menu.
+- **Ask when:** A named task’s intended result or the scope of a candidate-specific setting is unclear and changes what should be saved. Multiple candidate rows alone do not require selecting a workflow; general company preferences can remain general. Skip when scope and result are already clear or during an unrelated targeted update.
 - **Choices:** Free text, or concrete tasks the user already named. Use the answer to target questions; do not invent a workflow-name or outcome config field.
+- **If multiple candidates:** If candidate-specific requirements cannot be saved without conflating their scope, ask whether to record shared company preferences or configure a named candidate first. Use only candidates in the material, including notes outside the main rows. Never select the fullest row by assumption or apply its settings to the others.
 
 ## Q_CONTEXT
 
 **Ask:** What does your company do, who does it serve, and what work are you responsible for?
 
 - **Fields:** `org_name`, `org_description`, `people`
-- **Ask when:** During full setup, when company context or the user’s responsibilities are unknown. Ask only missing parts. An existing company name alone does not answer what it does; use supplied material before asking. Skip unrelated context during a targeted settings update.
+- **Ask when:** During full setup when context needed for the intended work is missing. A detailed worksheet describing the company’s tasks and responsible people can supply sufficient context; do not require a generic customer-profile interview when it would not affect this work. With no such material, ask the missing company and responsibility questions. Skip unrelated context during a targeted update.
 - **Choices:** Free text, existing company material, or explicitly defer. Record only stated business, customers, names, roles and responsibilities; do not infer missing people properties.
 
 ## Q_INPUT
@@ -37,7 +38,7 @@ because a file exists. Explicit no preference, use defaults or later answers are
 **Ask:** Which services or folders should Talyx use, and what material should it find in each?
 
 - **Fields:** `inputs`, `sources`
-- **Ask when:** During full setup, cover source choice, material or recurring inputs, and where to find them. A service name with a broad purpose leaves its search location unresolved unless the user has chosen account-wide search. Reuse known answers; ask only the missing part. On targeted updates, ask only about the affected sources. Files/folders only or decide later are valid explicit choices.
+- **Ask when:** During full setup, cover source choice, material or recurring inputs, and where to find them. A general service name needs a location or explicit broad-search choice. A named business system with clearly scoped records in the worksheet can already identify the intended source; do not demand folder links for every system. Flag any referenced but missing attachment. On targeted updates, clarify only affected sources. Files/folders only or later are valid choices.
 - **Choices:** Offer actual discovered services, files/folders only, or decide later; accept another named service. Record exact source purposes. Capture reusable inputs and templates when supplied, not a particular meeting’s files or attendees. Never infer that the working folder is a source or that a visible tool is authorized.
 - **If access missing:** For a selected service, ask: Connect {service} through {host}, use an export/upload, or leave it for later? Use a native connection flow only when exposed, otherwise verified host instructions. Recheck actual access after authorization. Save known preferences even if connecting is deferred; never store credentials or an invented connected flag.
 - **If location missing:** Which folders or collections in {service} should Talyx use for {material}, or should it search everything you have authorized it to access there? Accept folder names, links, an explicit broad-search choice, or later. Store the chosen location in sources.path and its purpose in sources.holds; keep recurring named inputs in inputs. Do not guess folder IDs or imply permission beyond the host’s actual grants.
@@ -47,7 +48,7 @@ because a file exists. Explicit no preference, use defaults or later answers are
 **Ask:** What should Talyx’s results look like, and where should it save them?
 
 - **Fields:** `rules`, `tone`, `terminology`, `inputs`, `sources`, `destination`
-- **Ask when:** During full setup, when desired content, format, a reusable template, writing preferences or destination have not been addressed. Ask only unanswered parts. Do not silently choose the default destination to skip this topic. On targeted updates, clarify only an affected output preference.
+- **Ask when:** During full setup when meaningful output preferences or destination remain unanswered. Prescribed forms, required wording and destinations in a worksheet already answer their parts; do not ask for an unrelated writing style. When no output guidance exists, ask and offer the local destination rather than silently skipping the choice. On targeted updates, clarify only affected output preferences.
 - **Choices:** Describe the desired result or name an existing template/example; no format preference is valid. Offer this working folder or another user-named destination. If this folder is selected, use its talyx-output subfolder. Existing saved preferences resolve their parts; an explicit use-defaults or later answer resolves the remaining choice. Save recurring output requirements verbatim in rules, voice in tone, reusable templates in inputs/sources, and destination in destination. Keep the client’s stated task scope; a task-specific format is not automatically a rule for every workflow. External destinations do not authorize sending.
 
 ## Q_RULES
@@ -63,7 +64,7 @@ because a file exists. Explicit no preference, use defaults or later answers are
 **Ask:** Who should review the results before they are used or shared?
 
 - **Fields:** `reviewers`, `review_required`
-- **Ask when:** During full setup when the reviewer and what they review are unknown; reuse existing reviewer settings without reconfirmation. On a targeted update, ask only if review is affected. The user may defer identifying a reviewer; review remains required by default.
+- **Ask when:** During full setup when reviewer or checks are unknown. Compare review statements across the supplied material first; a named reviewer does not resolve contradictory instructions about when review occurs. Ask Q_CONFLICT before saving disputed review settings. Reuse consistent existing answers. On targeted updates, ask only if review is affected. The user may defer; review remains required by default.
 - **Choices:** Me, or someone else (ask for their name and what they review). Map Me only when the person's identity is supplied; otherwise retain the unresolved identity.
 
 ## Q_HUMAN
@@ -95,7 +96,7 @@ because a file exists. Explicit no preference, use defaults or later answers are
 **Ask:** I found two different values for {field}: {existing} and {proposed}. Which should I keep?
 
 - **Fields:** The identified existing field; no new key.
-- **Ask when:** A material conflict or ambiguous replacement remains. Show both evidence sources. An explicit user instruction supplying the replacement already resolves it.
+- **Ask when:** The supplied material contradicts itself across cells, columns or documents, or a proposed setting conflicts with an existing one without explicit replacement authority. Show both statements and ask which applies. Prioritize material conflicts over optional profile or style questions. Never silently choose the most detailed statement.
 - **Choices:** Keep existing; use proposed; or supply the correct value. Name the setting in everyday language, never its config key. Silence is unresolved.
 
 ## Q_FIELD
