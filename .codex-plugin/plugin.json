@@ -1,6 +1,6 @@
 {
   "name": "talyx-skills",
-  "version": "0.25.0",
+  "version": "0.25.1",
   "description": "Talyx skills for turning your own knowledge into repeatable work",
   "author": {
     "name": "Talyx"
@@ -14,5 +14,22 @@
     "knowledge",
     "intelligence"
   ],
-  "skills": "./skills/"
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Talyx Skills",
+    "developerName": "Talyx",
+    "websiteURL": "https://talyx.ai",
+    "shortDescription": "Reusable company setup for free Talyx workflows",
+    "longDescription": "Talyx Setup asks only for missing company preferences and uses a validated config writer to save reusable settings in your working folder.",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Set up Talyx for my company."
+    ],
+    "logo": "./assets/logo-icon-light-512.png",
+    "logoDark": "./assets/logo-icon-dark-512.png"
+  }
 }

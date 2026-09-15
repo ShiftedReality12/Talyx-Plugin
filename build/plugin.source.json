@@ -1,7 +1,7 @@
 {
   "_comment": "SINGLE SOURCE OF TRUTH for every host manifest. Never edit a generated manifest by hand — edit this, then run build/generate.py.",
   "name": "talyx-skills",
-  "version": "0.25.0",
+  "version": "0.25.1",
   "description": "Talyx skills for turning your own knowledge into repeatable work",
   "author": {
     "name": "Talyx"
@@ -28,7 +28,18 @@
       "knowledge"
     ]
   },
-  "_omitted_deliberately": {
-    "interface (ChatGPT storefront block), composerIcon, logo, privacyPolicyURL, termsOfServiceURL": "storefront metadata for a public ChatGPT directory listing; a private install never shows it. Add back only if a public listing is planned."
+  "interface": {
+    "shortDescription": "Reusable company setup for free Talyx workflows",
+    "longDescription": "Talyx Setup asks only for missing company preferences and uses a validated config writer to save reusable settings in your working folder.",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Set up Talyx for my company."
+    ],
+    "logo": "./assets/logo-icon-light-512.png",
+    "logoDark": "./assets/logo-icon-dark-512.png"
   }
 }

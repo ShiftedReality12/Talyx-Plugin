@@ -13,7 +13,6 @@ The writer does not install dependencies, contact services or run workflows.
 Usage:  python3 build/generate.py
 """
 
-import io
 import json
 import os
 import shutil
@@ -37,7 +36,7 @@ BASE = ["name", "version", "description", "author", "homepage",
 #   omp-style      -> plugin entry carries version, metadata does not
 HOSTS = {
     "claude":  {"dir": ".claude-plugin",  "extra": [], "marketplace": "claude-style"},
-    "codex":   {"dir": ".codex-plugin",   "extra": ["skills"], "marketplace": None},
+    "codex":   {"dir": ".codex-plugin",   "extra": ["skills", "interface"], "marketplace": None},
     "cursor":  {"dir": ".cursor-plugin",  "extra": ["displayName"], "marketplace": "claude-style"},
     "grok":    {"dir": ".grok-plugin",    "extra": ["skills"], "marketplace": "claude-style"},
     "devin":   {"dir": ".devin-plugin",   "extra": [], "marketplace": None},
@@ -48,7 +47,7 @@ CONFIG_START = "<!-- talyx-config:start -->"
 CONFIG_END = "<!-- talyx-config:end -->"
 
 
-def inject_config_block(skills):
+def inject_config_block(skills, schema):
     """Write the shared config contract into every skill, between markers.
 
     Skills cannot read a file above their own directory -- layouts differ by host --
@@ -56,12 +55,12 @@ def inject_config_block(skills):
     so the block is generated once from build/config-schema.json and injected here.
     A skill with no markers gets them appended.
     """
-    block = build_config_block(load_schema()).strip()
+    block = build_config_block(schema).strip()
     wrapped = "%s\n%s\n%s" % (CONFIG_START, block, CONFIG_END)
     touched = []
     for skill in skills:
         path = os.path.join(PLUGIN, "skills", skill, "SKILL.md")
-        text = io.open(path, encoding="utf-8").read()
+        text = open(path, encoding="utf-8").read()
         if "talyx-config: none" in text.split("---")[1] if text.startswith("---") else False:
             continue  # skill opts out: it reads no config
         if CONFIG_START in text and CONFIG_END in text:
@@ -71,7 +70,7 @@ def inject_config_block(skills):
         else:
             new = text.rstrip() + "\n\n" + wrapped + "\n"
         if new != text:
-            io.open(path, "w", encoding="utf-8").write(new)
+            open(path, "w", encoding="utf-8").write(new)
             touched.append(skill)
     return touched
 
@@ -81,7 +80,7 @@ SCHEMA = os.path.join(HERE, "config-schema.json")
 
 
 def load_schema():
-    return json.load(io.open(SCHEMA, encoding="utf-8"))
+    return json.load(open(SCHEMA, encoding="utf-8"))
 
 
 def display_default(key):
@@ -109,7 +108,7 @@ def write_setup_resources(schema):
     })
     refs = os.path.join(base, "references")
     os.makedirs(refs, exist_ok=True)
-    io.open(os.path.join(refs, "field-mapping.md"), "w", encoding="utf-8").write(
+    open(os.path.join(refs, "field-mapping.md"), "w", encoding="utf-8").write(
         "<!-- Generated from build/config-schema.json. -->\n\n" + build_mapping_block(schema))
     rows = ["# Setup questions for the free Talyx plugin", "",
             "<!-- Generated from build/config-schema.json. -->", "",
@@ -129,21 +128,21 @@ def write_setup_resources(schema):
                             if question["id"] == "Q_WORK" else "The identified existing field; no new key.")
             rows.append("- **%s:** %s" % (label, rendered))
         rows.append("")
-    io.open(os.path.join(refs, "questions.md"), "w", encoding="utf-8").write("\n".join(rows))
+    open(os.path.join(refs, "questions.md"), "w", encoding="utf-8").write("\n".join(rows))
 
 
 def write_chat_adapters(schema):
     """Chat-only collection uses the same questions/types, without a second YAML writer."""
     base = os.path.join(PLUGIN, "skills", "talyx-setup")
-    questions = io.open(os.path.join(base, "references", "questions.md"), encoding="utf-8").read()
-    contract = io.open(os.path.join(base, "config.schema.json"), encoding="utf-8").read()
-    instructions = io.open(os.path.join(HERE, "free-setup-chat-instructions.txt"), encoding="utf-8").read()
+    questions = open(os.path.join(base, "references", "questions.md"), encoding="utf-8").read()
+    contract = open(os.path.join(base, "config.schema.json"), encoding="utf-8").read()
+    instructions = open(os.path.join(HERE, "free-setup-chat-instructions.txt"), encoding="utf-8").read()
     for host, filename, instruction_filename in (
         ("gemini", "talyx-company-setup.md", "gemini-gem-instructions.txt"),
         ("m365-copilot", "talyx-company-setup.txt", "copilot-agent-instructions.txt"),
     ):
         folder = os.path.join(PLUGIN, "adapters", host)
-        io.open(os.path.join(folder, instruction_filename), "w", encoding="utf-8").write(
+        open(os.path.join(folder, instruction_filename), "w", encoding="utf-8").write(
             instructions.replace("{knowledge_file}", filename))
         provisional = {"schema_version": schema["version"], "changes": {}, "evidence": {},
                        "replacements": [], "unresolved": []}
@@ -165,16 +164,11 @@ def write_chat_adapters(schema):
             "Existing unknown fields must be preserved and reported as unvalidated by the writer.", "",
             "```json", contract.rstrip(), "```", "",
         ])
-        io.open(os.path.join(folder, filename), "w", encoding="utf-8").write(text)
+        open(os.path.join(folder, filename), "w", encoding="utf-8").write(text)
 
 
 def build_config_block(schema):
-    """Generate the contract skills read: one rule per group, not one line per key.
-
-    A dictionary of 25 key descriptions was 4.3 KB and two thirds of every skill.
-    Skills need the behaviour, not the glossary -- the glossary is in the README
-    for people. Generated from the schema either way, so it cannot drift.
-    """
+    """Generate the shared behavior contract, grouped by configuration purpose."""
     out = ["## Configuration", "",
            "Workflow consumers read `.talyx/config.yaml` from the working folder first. If it is missing",
            "or unreadable, run Talyx Setup or obtain the required parameters before personalized dependent",
@@ -198,10 +192,6 @@ def build_config_block(schema):
     return "\n".join(out).strip() + "\n"
 
 
-MAP_START = "<!-- talyx-mapping:start -->"
-MAP_END = "<!-- talyx-mapping:end -->"
-
-
 def build_mapping_block(schema):
     """Sheet -> config, generated from the schema so no key can exist without a mapping."""
     missing = [k["name"] for k in schema["keys"] if not k.get("sheet")]
@@ -223,24 +213,6 @@ def build_mapping_block(schema):
             out.append("- `%s` — %s" % (k["name"], k["sheet"]))
         out.append("")
     return "\n".join(out).strip() + "\n"
-
-
-def inject_mapping_block(skills):
-    """Only a skill carrying the mapping markers (talyx-setup) gets the block."""
-    block = build_mapping_block(load_schema()).strip()
-    wrapped = "%s\n%s\n%s" % (MAP_START, block, MAP_END)
-    touched = []
-    for skill in skills:
-        path = os.path.join(PLUGIN, "skills", skill, "SKILL.md")
-        text = io.open(path, encoding="utf-8").read()
-        if MAP_START not in text or MAP_END not in text:
-            continue
-        a = text.index(MAP_START); b = text.index(MAP_END) + len(MAP_END)
-        new = text[:a] + wrapped + text[b:]
-        if new != text:
-            io.open(path, "w", encoding="utf-8").write(new)
-            touched.append(skill)
-    return touched
 
 
 def write_config_template(schema):
@@ -270,9 +242,9 @@ def write_config_template(schema):
         out.append("")
     path = os.path.join(PLUGIN, "skills", "talyx-setup", "config.template.yaml")
     text = "\n".join(out).rstrip() + "\n"
-    old = io.open(path, encoding="utf-8").read() if os.path.exists(path) else None
+    old = open(path, encoding="utf-8").read() if os.path.exists(path) else None
     if text != old:
-        io.open(path, "w", encoding="utf-8").write(text)
+        open(path, "w", encoding="utf-8").write(text)
     return text != old
 
 
@@ -283,7 +255,7 @@ def sync_readme_reference(schema):
     it is generated so it cannot fall behind.
     """
     path = os.path.join(PLUGIN, "README.md")
-    text = io.open(path, encoding="utf-8").read()
+    text = open(path, encoding="utf-8").read()
     rows = ["| Key | What it does | Default |", "|---|---|---|"]
     by_group = {}
     for k in schema["keys"]:
@@ -304,7 +276,7 @@ def sync_readme_reference(schema):
     else:
         new = text.rstrip() + "\n\n## Every config key\n\n" + block + "\n"
     if new != text:
-        io.open(path, "w", encoding="utf-8").write(new)
+        open(path, "w", encoding="utf-8").write(new)
         return True
     return False
 
@@ -312,20 +284,19 @@ def sync_readme_reference(schema):
 def check_config_coverage(schema):
     """Every schema key must be documented in the README. Generated, so always true —
     this guards against the generator itself being bypassed."""
-    import re
-    text = io.open(os.path.join(PLUGIN, "README.md"), encoding="utf-8").read()
+    text = open(os.path.join(PLUGIN, "README.md"), encoding="utf-8").read()
     return sorted(k["name"] for k in schema["keys"] if "`%s`" % k["name"] not in text)
 
 
 def load_source():
-    with io.open(SOURCE, encoding="utf-8") as fh:
+    with open(SOURCE, encoding="utf-8") as fh:
         src = json.load(fh)
     return {k: v for k, v in src.items() if not k.startswith("_")}
 
 
 def write_json(path, obj):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with io.open(path, "w", encoding="utf-8") as fh:
+    with open(path, "w", encoding="utf-8") as fh:
         fh.write(json.dumps(obj, indent=2, ensure_ascii=False) + "\n")
     return path
 
@@ -338,6 +309,13 @@ def build_manifest(src, profile):
     for key in profile["extra"] or []:
         if key == "skills":
             out["skills"] = "./skills/"
+        elif key == "interface":
+            out[key] = {
+                "displayName": src["displayName"],
+                "developerName": src["author"]["name"],
+                "websiteURL": src["homepage"],
+                **src["interface"],
+            }
         elif key in src:
             out[key] = src[key]
     return out
@@ -370,37 +348,6 @@ def build_marketplace(src, style):
     else:                      # omp-style
         entry["version"] = src["version"]
     return {"name": mkt["name"], "owner": mkt["owner"], "metadata": meta, "plugins": [entry]}
-
-
-def write_connectors(src):
-    """Write connector files only for declared, usable vendor endpoints."""
-    conns = {k: v for k, v in src.get("connectors", {}).items()
-             if not k.startswith("_") and v.get("url")}
-    mcp_path = os.path.join(PLUGIN, ".mcp.json")
-    guide_path = os.path.join(PLUGIN, "CONNECTORS.md")
-    if not conns:
-        for path in (mcp_path, guide_path):
-            if os.path.exists(path):
-                os.remove(path)
-        return 0
-    servers = {k: {kk: vv for kk, vv in v.items() if kk in ("type", "url")} for k, v in conns.items()}
-    write_json(mcp_path, {"mcpServers": servers})
-    rows = ["| Connector | Category | How it is reached |", "|---|---|---|"]
-    for k, v in conns.items():
-        how = "your Claude connector" if not v.get("url") else "the vendor's own endpoint, your account"
-        rows.append("| %s | %s | %s |" % (k, v["category"], how))
-    text = "\n".join([
-        "# Connectors", "",
-        "Skills never name a product. They say *read from `sources`* or *find the intake email*, and",
-        "whatever you have connected in that category does the work. Nothing here is bundled or run",
-        "by Talyx; each connector is yours, authorized by you, and a skill only uses the ones you have.", "",
-        "`.mcp.json` lists the ones below so your AI app can show which are connected and offer to",
-        "connect the rest. A connector you do not use is simply ignored, and one you have that is",
-        "not listed still works — the list only drives the prompt.", "",
-    ] + rows + ["", "Systems without a connector (a land system, a portfolio platform, a regulator's portal)",
-                "are named in your config as `sources` and reached by export or upload.", ""])
-    io.open(guide_path, "w", encoding="utf-8").write(text)
-    return len(conns)
 
 
 def discover_skills():
@@ -444,24 +391,17 @@ def build_perplexity_bundles(skills):
 
 
 def check_skills(skills):
-    """Everything we learned the hard way, run against every skill.
-
-    Each rule below exists because a real install broke on it. Ben's skills are
-    written in his environment (repo + terminal); these catch what will not
-    survive a business user's Cowork or Chat session, before it ships.
-    """
+    """Check skill metadata and portability before packaging."""
     import re
     report = []
     for skill in skills:
         path = os.path.join(PLUGIN, "skills", skill, "SKILL.md")
-        text = io.open(path, encoding="utf-8").read()
+        text = open(path, encoding="utf-8").read()
         fm = text.split("---")[1] if text.startswith("---") else ""
         body = text[len(fm) + 6:] if fm else text
         # the injected contract is ours, not the author's -- exclude it from author checks
         if CONFIG_START in body:
             body = body[:body.index(CONFIG_START)]
-        if MAP_START in body and MAP_END in body:
-            body = body[:body.index(MAP_START)] + body[body.index(MAP_END) + len(MAP_END):]
         fails, warns = [], []
 
         name = re.search(r"^name:\s*(.+)$", fm, re.M)
@@ -516,6 +456,7 @@ def check_skills(skills):
 
 def main():
     src = load_source()
+    schema = load_schema()
     written = []
 
     for host, profile in sorted(HOSTS.items()):
@@ -531,12 +472,10 @@ def main():
                               build_gemini_manifest(src)))
 
     skills = discover_skills()
-    write_setup_resources(load_schema())
-    write_chat_adapters(load_schema())
-    injected = inject_config_block(skills)
-    mapped = inject_mapping_block(skills)
-    templated = write_config_template(load_schema())
-    n_conn = write_connectors(src)
+    write_setup_resources(schema)
+    write_chat_adapters(schema)
+    injected = inject_config_block(skills, schema)
+    templated = write_config_template(schema)
 
     print("Source      : %s v%s" % (src["name"], src["version"]))
     print("Hosts       : %d" % len(HOSTS))
@@ -548,14 +487,12 @@ def main():
 
     print()
     print("Config contract injected into: %s" % (", ".join(injected) if injected else "no change"))
-    print("Connectors declared: %d%s" % (n_conn, " (.mcp.json + CONNECTORS.md)" if n_conn else ""))
-    print("Sheet mapping generated into: %s" % (", ".join(mapped) if mapped else "no change"))
     print("Config template: %s" % ("rewritten" if templated else "no change"))
 
-    sync_readme_reference(load_schema())
-    missing = check_config_coverage(load_schema())
+    sync_readme_reference(schema)
+    missing = check_config_coverage(schema)
     print()
-    print("Config schema: %d keys in %d groups" % (len(load_schema()["keys"]), len(load_schema()["groups"])))
+    print("Config schema: %d keys in %d groups" % (len(schema["keys"]), len(schema["groups"])))
     if missing:
         print("  ! README does not document: %s" % ", ".join(missing))
     else:
@@ -575,17 +512,17 @@ def main():
     if allclear:
         print("  -- no blocking problems")
 
+    if not allclear or missing:
+        sys.exit("Build failed — fix the items above. No bundles were created or replaced.")
+
     print()
     print("Perplexity bundles (one skill per ZIP):")
     for skill, count, size in build_perplexity_bundles(skills):
         print("  dist/perplexity/%s.zip  (%d files, %d bytes)" % (skill, count, size))
 
     print()
-    if allclear and not missing:
-        print("Generated artifacts passed static checks for v%s." % src["version"])
-        print("Runtime, host installation and actual workflow consumption require separate verification.")
-    else:
-        print("NOT ready to ship — fix the items above, then re-run.")
+    print("Generated artifacts passed static checks for v%s." % src["version"])
+    print("Runtime, host installation and actual workflow consumption require separate verification.")
 
 
 if __name__ == "__main__":
