@@ -1,34 +1,39 @@
 # Talyx Skills
 
-The free Talyx plugin provides reusable skills for work with your own material and existing
-tools. Setup creates the shared company configuration those skills use.
-After the requested placeholder cleanup, this local preview contains Setup only; the next
-workflow package is pending. That describes this preview's inventory, not the scope of the free product.
+Free Talyx skills work with your own material and already-authorized tools. This release
+includes **Talyx Setup**, which prepares the shared company settings for later workflow skills.
+No Talyx subscription or tier selection is required. Your AI app's plan and access are separate.
 
-## Choose your app
+## Install
 
-Open your one-page guide and follow the steps. Talyx is free; your AI app's plan and access are separate.
+Use this repository address when adding the marketplace:
 
-| App | One-page guide | What to use |
-|---|---|---|
-| Claude desktop with Cowork | [Install guide](docs/install/talyx-claude-cowork-one-pager.pdf) | Add the Talyx marketplace, install the plugin, then start Setup. |
-| ChatGPT desktop with Work locally | [Install guide](docs/install/talyx-chatgpt-work-one-pager.pdf) | **Plugins → Add → Add a marketplace**, then install Talyx. |
-| Perplexity Computer | [Upload guide](docs/install/talyx-perplexity-computer-one-pager.pdf) | Upload [talyx-setup.zip](docs/install/talyx-setup.zip). |
-| Gemini Apps | [Gem guide](docs/install/talyx-gemini-apps-one-pager.pdf) | Copy the entire [instruction text](docs/install/gemini-gem-instructions.txt), then upload the supplied [company setup file](docs/install/talyx-company-setup.md). |
-| Microsoft 365 Copilot Agent Builder | [Agent guide](docs/install/talyx-m365-copilot-agent-builder-one-pager.pdf) | Use the [agent instructions](docs/install/m365-copilot-agent-builder-instructions.md) and [company configuration file](docs/install/talyx-company-setup.txt). |
+```text
+https://github.com/ShiftedReality12/Talyx-Plugin
+```
 
-Gemini and Microsoft 365 use prepared adaptations, with a manual step to save and reuse the
-configuration in Knowledge. They are not repository-plugin installations. These guides were
-checked against documentation; fresh installation and configuration reuse in each app remain
-to be tested. Microsoft 365 requires an eligible work tenant, not consumer or GitHub Copilot.
+**Claude desktop with Cowork**
 
-For Gemini, create your Gem once at **gemini.google.com → Settings and help → Gems**.
-Use the same Google account on your other devices. Mobile: **Menu → Gems → Talyx Setup**.
-If your desktop or mobile app does not show Gems, open Gemini in your browser. Native desktop
-Gem access remains unverified; Gemini Live does not support Gems. The [Gemini instructions and
-file-saving help](docs/install/gemini-gem-instructions.md) explain how to retain your setup.
+1. Open **Cowork → Customize → Plugins**.
+2. Under **Personal plugins**, choose **+ → Add marketplace → Add from a repository**.
+   Paste the address above and confirm.
+3. Choose **Browse plugins**, find **talyx-skills** in the **talyx** marketplace, and install it.
+4. Start a new Cowork task. Type **/** or click **+**, then select **talyx-setup**.
 
-For Claude Code, enter these commands inside its conversation:
+**ChatGPT desktop with Work locally**
+
+1. Open **Plugins → Add → Add a marketplace**.
+2. Paste the address above into **Source**. Leave **Git ref** and **Sparse paths** blank,
+   then choose **Add marketplace**.
+3. Find **talyx-skills** in the **talyx** marketplace and install it.
+4. Start a **Work locally** task, choose your work folder, then type **@** and select **talyx-setup**.
+
+If these menus are missing, check your app/account access with your administrator or Talyx contact.
+
+<details>
+<summary>Claude Code</summary>
+
+Enter these commands inside a Claude Code conversation:
 
 ```text
 /plugin marketplace add ShiftedReality12/Talyx-Plugin
@@ -37,52 +42,67 @@ For Claude Code, enter these commands inside its conversation:
 /talyx-skills:talyx-setup
 ```
 
-## Start here
+</details>
 
-Run `talyx-setup` first. It reads what is already available in your workspace or chat, including
-an optional worksheet, then asks only for unresolved inputs, outcome, destination, review, and
-guardrails. It uses the app's real question tool where available, with short conversational
-questions otherwise. It fills the existing schema in `.talyx/config.yaml` and preserves existing
-values, comments and client extensions. Explicit updates apply without asking twice; ambiguous
-conflicts are put back to you. Review the reported values before relying on them.
+**Other environments:** Perplexity Computer uses the separately supplied skill ZIP.
+Gemini Apps and Microsoft 365 Copilot Agent Builder use separate instructions and a company
+setup file. Follow the guide supplied with those files. Client handouts and downloads are
+distributed separately from this repository. `gemini-extension.json` is the Gemini CLI adapter;
+it is not the Gemini Apps installation route.
 
-Setup is free. It establishes reusable configuration; it does not run a workflow or claim a
-connector can access material the host has not exposed. A released client workflow is not yet
-included in this package.
+## Run Setup
 
-## Skills
+Ask “Set up Talyx,” answer the short questions and review the settings it prepares. A worksheet
+is optional. Setup uses your app's question forms when available and short chat questions otherwise.
 
-| Skill | What it does | Writes files |
-|---|---|---|
-| `talyx-setup` | Discovers available material, asks only material gaps, and writes reusable configuration. A worksheet is optional. | yes |
+[Setup](skills/talyx-setup/SKILL.md) fills the existing
+[configuration template](skills/talyx-setup/config.template.yaml). It saves `.talyx/config.yaml`
+in your working folder, preserves existing settings and asks about unresolved conflicts.
+Unknown values stay unset; documented defaults apply. Later workflow skills must read this
+same file before personalized work. Configuration checks validate structure; review the values
+for factual accuracy.
 
-## Configuration
+The subscription provides protected Talyx intelligence and services through a separate
+authenticated connector. Installing this free plugin does not install that connector or
+subscribe you to a service.
 
-One file, `.talyx/config.yaml`, in the folder you work in. Every key is optional. `talyx-setup`
-writes it with comments so you can read and edit it; the full key list is below.
+The next workflow package is still being prepared. Fresh installation, native question forms
+and reuse of saved settings in each target app remain to be verified.
 
-Skills never hardcode your company, folders, people or rules — they read them from that
-file. That is what lets the same skill work for any company without being rewritten, and
-what stops a skill from making a call that is yours to make.
+## Repository layout
 
-Other generated manifests remain development artifacts and are not client-install promises.
+```text
+.claude-plugin/       Claude manifest and marketplace
+.codex-plugin/        Codex / ChatGPT plugin manifest
+.cursor-plugin/       Existing Cursor manifest and marketplace
+.devin-plugin/        Existing Devin manifest
+.grok-plugin/         Existing Grok manifest and marketplace
+skills/
+  README.md           Skill layout and shared-config convention
+  talyx-setup/
+    SKILL.md          Setup instructions
+    config.template.yaml
+assets/               Talyx logo source and icons
+gemini-extension.json Gemini CLI adapter
+LICENSE               MIT license
+README.md             Installation and configuration reference
+```
 
-## Manifests are generated
+Each released skill belongs in its own folder directly under `skills/`, alongside
+`talyx-setup/`. Keep required resources inside that skill's folder. See the
+[skills directory](skills/README.md). Existing host manifests do not establish tested
+compatibility with every product from those vendors.
 
-Every manifest here, and the configuration block inside each skill, is produced from one
-source by a build script kept outside this repository. **Do not edit them by hand** — the
-next build overwrites them.
+Host manifests and marked configuration blocks are generated by the existing build tooling
+outside this plugin repository. Change their source definitions rather than creating parallel
+copies. Keep client PDFs, presentations, submission materials and generated downloads outside
+the plugin; they are separate deliverables.
 
-## Notes
+<details>
+<summary>Configuration reference — all 25 parameters</summary>
 
-This package adds no server, hooks, bundled executable or connector endpoints. Setup may use
-material already available through your app and its authorized tools. It does not install or
-authorize connectors. Bundled resources live inside the skill folder; your company configuration
-lives in the working folder. Schema checks validate structure, not the truth of source facts.
-
-## Every config key
-
-★ marks useful starting parameters; Setup asks only for information the current work needs.
+Every key is optional. ★ marks useful starting parameters. Setup asks only for what the
+current work needs. Key names and shapes come from the existing template.
 
 <!-- config-reference:start -->
 | Key | What it does | Default |
@@ -122,3 +142,5 @@ lives in the working folder. Schema checks validate structure, not the truth of 
 | `on_check_failed` | A check in `verify` did not pass. stop refuses to produce the result; note produces it marked failed. Never adjust a value to make a check pass. | `stop` |
 | `on_stale_source` | A source looks out of date. warn uses it and says so; stop does not use it. | `warn` |
 <!-- config-reference:end -->
+
+</details>
