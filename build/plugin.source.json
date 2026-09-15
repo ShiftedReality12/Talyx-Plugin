@@ -1,0 +1,34 @@
+{
+  "_comment": "SINGLE SOURCE OF TRUTH for every host manifest. Never edit a generated manifest by hand — edit this, then run build/generate.py.",
+  "name": "talyx-skills",
+  "version": "0.25.0",
+  "description": "Talyx skills for turning your own knowledge into repeatable work",
+  "author": {
+    "name": "Talyx"
+  },
+  "homepage": "https://talyx.ai",
+  "repository": "https://github.com/ShiftedReality12/Talyx-Plugin",
+  "license": "MIT",
+  "keywords": [
+    "talyx",
+    "workflows",
+    "knowledge",
+    "intelligence"
+  ],
+  "displayName": "Talyx Skills",
+  "marketplace": {
+    "name": "talyx",
+    "owner": {
+      "name": "Talyx"
+    },
+    "description": "Talyx plugin marketplace",
+    "tags": [
+      "talyx",
+      "workflows",
+      "knowledge"
+    ]
+  },
+  "_omitted_deliberately": {
+    "interface (ChatGPT storefront block), composerIcon, logo, privacyPolicyURL, termsOfServiceURL": "storefront metadata for a public ChatGPT directory listing; a private install never shows it. Add back only if a public listing is planned."
+  }
+}

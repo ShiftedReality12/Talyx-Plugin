@@ -1,25 +1,38 @@
 # Talyx skills
 
-This is the plugin's shared skills directory. Each skill has its own folder containing
-`SKILL.md` and any resources it needs. The current package contains:
+The free package contains Talyx Setup, which prepares reusable company settings. Each workflow
+skill can read the same settings when it is added to the package.
 
 ```text
 skills/
 ├── README.md
 └── talyx-setup/
     ├── SKILL.md
-    └── config.template.yaml
+    ├── config.schema.json
+    ├── config.template.yaml
+    ├── references/
+    │   ├── questions.md
+    │   ├── field-mapping.md
+    │   └── runtime.md
+    └── scripts/
+        ├── generate_config.py
+        └── requirements.txt
 ```
 
-[Talyx Setup](talyx-setup/SKILL.md) creates or updates the company's configuration using the
-[existing template](talyx-setup/config.template.yaml). The company configuration is saved in
-the user's working folder as `.talyx/config.yaml`, outside the installed plugin.
+[Setup](talyx-setup/SKILL.md) gathers evidenced, reusable company preferences and passes them to
+[the writer](talyx-setup/scripts/generate_config.py). It writes the client's working-folder
+`.talyx/config.yaml`, outside the installed plugin. The [schema](talyx-setup/config.schema.json)
+defines fields and types; [questions](talyx-setup/references/questions.md) define conditional
+prompts; [runtime.md](talyx-setup/references/runtime.md) defines the request, validation and recovery.
+Hosts without the required runtime collect provisional answers only.
 
-Add each released workflow skill as another folder directly inside `skills/`, alongside
-`talyx-setup/`. Workflow skills must read the shared company configuration before personalized
-work. They do not belong inside the Setup folder.
+Add each workflow skill as a sibling of `talyx-setup/` when supplied. Its acceptance must show
+that it reads the writer's saved config and follows the relevant settings in its actual output.
+No placeholder workflow establishes that connection.
 
-The package still discovers skills from this directory. Removing the demonstration skills
-changed the current inventory, not this layout. See the [plugin README](../README.md) for
-installation and current limitations. Client handouts and generated downloads are distributed
-separately from the plugin.
+The canonical [schema definitions](../build/config-schema.json), [generator](../build/generate.py)
+and [CLI tests](../tests/test_generate_config.py) live in this repository.
+Generated schema, question reference, mapping, default documentation and chat adaptations must
+be regenerated together. Subscription onboarding and connector work stay outside this free package.
+
+See the [plugin README](../README.md) for installation and host limitations.

@@ -1,7 +1,7 @@
-# .talyx/config.yaml — written by talyx-setup from available evidence.
-# Every key is optional. A key unsupported by the available evidence stays commented out;
-# the skills then use its documented default. Values are the client's own words.
-# Key names and shapes come from the config schema — keep them exactly.
+# .talyx/config.yaml — reference shapes, not a file to fill by hand.
+# Talyx Setup passes evidenced values to scripts/generate_config.py.
+# Every key is optional; absent keys use their documented defaults.
+# Examples are not client facts. config.schema.json defines the executable types.
 
 # ---- Context — who this is, so skills never ask twice
 # org_name: "<company name as it should appear>"

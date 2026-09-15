@@ -1,0 +1,735 @@
+{
+  "_comment": "CANONICAL CONFIG SCHEMA. The contract skills read and the example clients fill are both generated or checked against this. Add a key here, never in either file. Every key was kept, cut or added because a real worksheet demanded it — see test-inputs/.",
+  "version": 3,
+  "groups": [
+    {
+      "id": "context",
+      "title": "Context",
+      "intent": "who this is, so skills never ask twice",
+      "contract": "Write in their voice. Follow `terminology` everywhere. Never restate their own description back at them."
+    },
+    {
+      "id": "people",
+      "title": "People",
+      "intent": "who owns what; skills name them, never contact them",
+      "contract": "Name people on output; never contact anyone. `escalate_to` is a chain, in order — stop at the first who can decide. `rule_authority` identifies who may change a workflow rule; it does not authenticate anyone."
+    },
+    {
+      "id": "material",
+      "title": "Material",
+      "intent": "what arrives and where the truth lives",
+      "contract": "Use material supplied for the current run and configured sources that the host can actually access, respecting any stated source restriction. An authoritative source settles a disagreement only when the authority is explicit and unambiguous; report the disagreement. Prefer a named input over asking someone to paste."
+    },
+    {
+      "id": "work",
+      "title": "The work",
+      "intent": "what must always hold, and how the result is checked",
+      "contract": "Every `rule` always holds; `beats` settles a conflict between two. No rule is traded for speed. `verify` says what is checked against what — if a check cannot be run, say so, and never report unchecked work as checked. `for_each` repeats the work per item, independently; one failure does not abandon the rest."
+    },
+    {
+      "id": "guardrails",
+      "title": "Guardrails",
+      "intent": "constraints for work prepared from this configuration",
+      "contract": "Treat these as approved workflow constraints. They do not grant access, enforce a security policy, or override the host's instructions. `never_decide` — hand back. `never_produce` — do not generate. `protected` — never alter, reword or reformat. `confidential` — never mention."
+    },
+    {
+      "id": "review",
+      "title": "Review",
+      "intent": "nothing reaches anyone outside without a person",
+      "contract": "When required, mark the result as needing review and name each reviewer and what they check, including where an outside body requires it. Never send, file, publish, or call anything final or approved."
+    },
+    {
+      "id": "output",
+      "title": "Output",
+      "intent": "where the result goes and what proves it arrived",
+      "contract": "Use the configured destination only within the current task's authority. A folder path must stay inside the working folder. A system or submission entry records a preference; it never authorizes sending, publishing or a connector action. Report saved, delivered or confirmed only when the relevant tool result establishes it."
+    },
+    {
+      "id": "timing",
+      "title": "Timing",
+      "intent": "when it is due and what happens if it is late",
+      "contract": "A `deadline` never justifies skipping a check or a review. Report the risk instead."
+    },
+    {
+      "id": "stuck",
+      "title": "When stuck",
+      "intent": "what to do instead of guessing",
+      "contract": "Follow the setting, default in brackets. Never adjust a value to make a check pass."
+    }
+  ],
+  "keys": [
+    {
+      "name": "org_name",
+      "group": "context",
+      "type": "string",
+      "default": null,
+      "star": true,
+      "does": "Company name as it should appear in anything written.",
+      "sheet": "the sheet title",
+      "shape": "org_name: \"<company name as it should appear>\"",
+      "validation": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      }
+    },
+    {
+      "name": "org_description",
+      "group": "context",
+      "type": "string",
+      "default": null,
+      "star": true,
+      "does": "What the company does. Context only; never restate it back at them.",
+      "sheet": "only if the sheet says what the company does — otherwise absent",
+      "shape": "org_description: \"<what they do, in their words>\"",
+      "validation": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      }
+    },
+    {
+      "name": "terminology",
+      "group": "context",
+      "type": "map",
+      "default": null,
+      "does": "Word to avoid mapped onto word to use. Follow it everywhere.",
+      "sheet": "any \"we say X not Y\" anywhere on the sheet",
+      "shape": "terminology:\n  <word to avoid>: \"<word to use>\"",
+      "validation": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      }
+    },
+    {
+      "name": "tone",
+      "group": "context",
+      "type": "string",
+      "default": "plain and direct",
+      "does": "Style instruction for anything written.",
+      "sheet": "only if the sheet asks for a voice — otherwise default",
+      "shape": "tone: \"<their voice, if the sheet asks for one>\"",
+      "validation": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      }
+    },
+    {
+      "name": "people",
+      "group": "people",
+      "type": "list<object>",
+      "default": null,
+      "does": "Name, role, what each owns. Name them on output; never contact anyone.",
+      "sheet": "Who does it today — each name and what they own, as written; no role the sheet did not state",
+      "shape": "people:\n  - { name: \"<name>\", role: \"<role, only if stated>\", owns: \"<what they own, as written>\" }",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "role": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "owns": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "required": [
+            "name",
+            "owns"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "name": "rule_authority",
+      "group": "people",
+      "type": "list<string>",
+      "default": null,
+      "does": "Recorded owner for changes to a workflow rule. This is not authentication or access control.",
+      "sheet": "only if the sheet says who may change a rule",
+      "shape": "rule_authority: [\"<who may change a rule>\"]",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      }
+    },
+    {
+      "name": "escalate_to",
+      "group": "people",
+      "type": "list<string>",
+      "default": null,
+      "does": "Escalation chain, in order. Stop at the first person who can decide.",
+      "sheet": "handoffs in Who does it today or the judgment column — in order, with any condition kept",
+      "shape": "escalate_to: [\"<first>\", \"<then>\"]          # in order; keep any condition in the name, e.g. \"Beth Cantu — only if the RRC issues a notice\"",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      }
+    },
+    {
+      "name": "inputs",
+      "group": "material",
+      "type": "list<object>",
+      "default": null,
+      "star": true,
+      "does": "What arrives, from where, and which facts it reliably carries. Prefer a named input over asking someone to paste.",
+      "sheet": "Task (what starts it) and Systems — what arrives and from where",
+      "shape": "inputs:\n  - { name: \"<what arrives>\", from: \"<where>\", provides: [\"<what it reliably carries>\"] }",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "from": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "provides": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            }
+          },
+          "required": [
+            "name",
+            "from"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "name": "sources",
+      "group": "material",
+      "type": "list<object>",
+      "default": null,
+      "star": true,
+      "does": "Where to read from when the host actually has access. Set authoritative: true only when the client evidence explicitly grants that source priority. Apply an unambiguous priority and report the disagreement; otherwise ask.",
+      "sheet": "Systems / files it touches — every system named; `authoritative` only if the sheet says which wins",
+      "shape": "sources:\n  - { path: \"<system or folder>\", holds: \"<what>\", authoritative: true }   # authoritative only if the sheet says it wins",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "holds": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "authoritative": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "path",
+            "holds"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "name": "rules",
+      "group": "work",
+      "type": "list<object>",
+      "default": null,
+      "star": true,
+      "does": "What must always hold, in the client's own words. Each may carry `because` and `beats` to settle a conflict with another rule. A rule is never traded away for speed or a deadline.",
+      "sheet": "the judgment column — every always / never / must, in their words; a demand that fits no key goes here verbatim and is named as uncovered",
+      "shape": "rules:\n  - { rule: \"<always / never / must, verbatim>\", because: \"<their reason, if given>\", beats: \"<the rule it overrides, if stated>\" }",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "rule": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "because": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "beats": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "required": [
+            "rule"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "name": "verify",
+      "group": "work",
+      "type": "list<object>",
+      "default": null,
+      "star": true,
+      "does": "What is checked against what, and how exactly it must match. If a check cannot be run, say so — never report unchecked work as checked.",
+      "sheet": "\"has a right answer in X\" — what is checked against what",
+      "shape": "verify:\n  - { check: \"<what>\", against: \"<which source>\", match: \"<how exactly, if stated>\" }",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "check": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "against": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "match": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "required": [
+            "check",
+            "against"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "name": "for_each",
+      "group": "work",
+      "type": "string",
+      "default": null,
+      "does": "The thing the work repeats over — one per client, lease, household. Each run is independent; one failure does not abandon the rest.",
+      "sheet": "How often / how many — the thing the work repeats over (client, lease, household)",
+      "shape": "for_each: \"<the thing the work repeats over>\"",
+      "validation": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      }
+    },
+    {
+      "name": "never_decide",
+      "group": "guardrails",
+      "type": "list<string>",
+      "default": null,
+      "star": true,
+      "does": "Judgements to hand back to a person, even when the answer looks obvious and even when asked directly.",
+      "sheet": "the judgment column — whatever must stay with a person, in their words",
+      "shape": "never_decide:\n  - \"<judgement that stays with a person, verbatim>\"",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      }
+    },
+    {
+      "name": "never_produce",
+      "group": "guardrails",
+      "type": "list<string>",
+      "default": null,
+      "does": "Kinds of output never to generate at all — a recommendation, a projection, a forecast. Different from a judgement: refusing to decide is not enough if the artefact itself is forbidden.",
+      "sheet": "anything the sheet says the tool must never generate",
+      "shape": "never_produce:\n  - \"<kind of output never to generate, verbatim>\"",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      }
+    },
+    {
+      "name": "protected",
+      "group": "guardrails",
+      "type": "list<string>",
+      "default": null,
+      "does": "Content that may be filled around but never altered, reworded or reformatted.",
+      "sheet": "anything that may not be reworded",
+      "shape": "protected:\n  - \"<content never to reword>\"",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      }
+    },
+    {
+      "name": "confidential",
+      "group": "guardrails",
+      "type": "list<string>",
+      "default": null,
+      "does": "Must not appear in anything written.",
+      "sheet": "anything that must not appear in output",
+      "shape": "confidential:\n  - \"<what must not appear in output>\"",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      }
+    },
+    {
+      "name": "review_required",
+      "group": "review",
+      "type": "boolean",
+      "default": true,
+      "does": "Mark the result as needing review and name who must check it. Never send, file, publish, or call anything final or approved.",
+      "sheet": "true when any review wording exists",
+      "shape": "review_required: true",
+      "validation": {
+        "type": "boolean"
+      }
+    },
+    {
+      "name": "reviewers",
+      "group": "review",
+      "type": "list<object>",
+      "default": null,
+      "star": true,
+      "does": "Who checks what, and whether it is required by an outside body rather than internal preference. State that reason on the output.",
+      "sheet": "review wording, usually hidden in the Task column — who checks what, and whether an outside body requires it",
+      "shape": "reviewers:\n  - { who: \"<name>\", checks: \"<what>\", required_by: \"<outside body, if the sheet says so>\" }",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "who": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "checks": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "required_by": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "required": [
+            "who",
+            "checks"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "name": "destination",
+      "group": "output",
+      "type": "list<object>",
+      "default": [
+        {
+          "to": "talyx-output",
+          "kind": "folder"
+        }
+      ],
+      "does": "Preferred output location: a folder, a system or a submission destination. Folder paths must stay inside the working folder. Default: local talyx-output folder. A destination is not permission to send. Report saved, delivered or confirmed only when an actual tool result establishes it; a receipt preference alone proves nothing.",
+      "sheet": "Task — where it ends: a portal, a folder, a system; `receipt` when a confirmation is named",
+      "shape": "destination:\n  - { to: \"<folder, system or portal>\", kind: \"<folder | system | submission>\", receipt: \"<what proves it arrived, if named>\" }",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "to": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "kind": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Use folder for a local directory; system or submission for external destinations. Existing descriptive labels remain labels and grant no action permission.",
+              "pattern": "\\S"
+            },
+            "receipt": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "required": [
+            "to",
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "default_label": "talyx-output (folder)"
+    },
+    {
+      "name": "date_format",
+      "group": "output",
+      "type": "string",
+      "default": "YYYY-MM-DD",
+      "does": "How dates are written.",
+      "sheet": "only if the sheet shows one",
+      "shape": "date_format: \"YYYY-MM-DD\"",
+      "validation": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      }
+    },
+    {
+      "name": "deadline",
+      "group": "timing",
+      "type": "list<object>",
+      "default": null,
+      "does": "When work is due, who sets it, and the consequence of missing it. A deadline never justifies skipping a check or a review — report the risk instead.",
+      "sheet": "a due date and what happens if it is missed, wherever it appears; `set_by` when stated",
+      "shape": "deadline:\n  - { what: \"<what is due>\", when: \"<when>\", set_by: \"<who or what sets it>\", consequence: \"<what happens if missed>\" }",
+      "validation": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "what": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "when": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "set_by": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "consequence": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "required": [
+            "what",
+            "when"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "name": "on_missing_input",
+      "group": "stuck",
+      "type": "ask | note",
+      "default": "ask",
+      "does": "A required fact is missing. ask stops and asks; note continues and marks the gap plainly.",
+      "sheet": "only if the sheet says what to do — otherwise default",
+      "shape": "on_missing_input: ask     # ask | note",
+      "validation": {
+        "type": "string",
+        "enum": [
+          "ask",
+          "note"
+        ]
+      }
+    },
+    {
+      "name": "on_conflict",
+      "group": "stuck",
+      "type": "ask | note",
+      "default": "ask",
+      "does": "Two sources disagree and none is authoritative. ask stops and asks; note records both and flags it, resolving nothing.",
+      "sheet": "only if the sheet says what to do — otherwise default",
+      "shape": "on_conflict: ask          # ask | note",
+      "validation": {
+        "type": "string",
+        "enum": [
+          "ask",
+          "note"
+        ]
+      }
+    },
+    {
+      "name": "on_check_failed",
+      "group": "stuck",
+      "type": "stop | note",
+      "default": "stop",
+      "does": "A check in `verify` did not pass. stop refuses to produce the result; note produces it marked failed. Never adjust a value to make a check pass.",
+      "sheet": "only if the sheet says what to do (\"if it won't reconcile, stop\") — otherwise default",
+      "shape": "on_check_failed: stop     # stop | note",
+      "validation": {
+        "type": "string",
+        "enum": [
+          "stop",
+          "note"
+        ]
+      }
+    },
+    {
+      "name": "on_stale_source",
+      "group": "stuck",
+      "type": "warn | stop",
+      "default": "warn",
+      "does": "A source looks out of date. warn uses it and says so; stop does not use it.",
+      "sheet": "only if the sheet says what to do — otherwise default",
+      "shape": "on_stale_source: warn     # warn | stop",
+      "validation": {
+        "type": "string",
+        "enum": [
+          "warn",
+          "stop"
+        ]
+      }
+    }
+  ],
+  "setup_questions": [
+    {
+      "id": "Q_WORK",
+      "prompt": "What recurring task would you like help with, and what should it produce?",
+      "fields": [],
+      "ask_when": "The task or desired result is unclear and is needed to identify material setup gaps. Skip when the user already named the task, is changing a known setting, or only wants company-wide preferences. Do not impose a workflow menu.",
+      "choices": "Free text, or concrete tasks the user already named. Use the answer to target questions; do not invent a workflow-name or outcome config field."
+    },
+    {
+      "id": "Q_CONTEXT",
+      "prompt": "What company and role should Talyx use as context?",
+      "fields": [
+        "org_name",
+        "org_description",
+        "people"
+      ],
+      "ask_when": "Reusable company or role context is relevant and the material does not establish it. Keep unneeded context absent; a self-contained task does not require a company profile.",
+      "choices": "Free text. Extract company, role and responsibilities only when stated."
+    },
+    {
+      "id": "Q_INPUT",
+      "prompt": "Which files or sources should Talyx use for this work?",
+      "fields": [
+        "inputs",
+        "sources"
+      ],
+      "ask_when": "Reusable inputs or permitted sources are needed and remain unclear. One-off files, subjects and dates belong to the workflow run, not shared setup.",
+      "choices": "Offer named supplied material, a chosen working folder, or a connection the host actually exposes. If access is unavailable, offer an export/upload without claiming it is connected."
+    },
+    {
+      "id": "Q_DESTINATION",
+      "prompt": "Where should Talyx save the results?",
+      "fields": [
+        "destination"
+      ],
+      "ask_when": "The requested destination is unclear or differs from the documented local talyx-output folder. Otherwise apply the existing destination or report the default without asking.",
+      "choices": "The local output folder or another user-named permitted destination. An external destination is a preference, not permission to send."
+    },
+    {
+      "id": "Q_REVIEW",
+      "prompt": "Who should review the results before they are used or shared?",
+      "fields": [
+        "reviewers",
+        "review_required"
+      ],
+      "ask_when": "A reviewer is material to this client's workflow and has not been identified. Review stays required by default; never invent a reviewer.",
+      "choices": "Me, or someone else (ask for their name and what they review). Map Me only when the person's identity is supplied; otherwise retain the unresolved identity."
+    },
+    {
+      "id": "Q_HUMAN",
+      "prompt": "Which decisions must always stay with you or another person?",
+      "fields": [
+        "never_decide"
+      ],
+      "ask_when": "The client describes judgments needing a person but the boundary is ambiguous. Do not require a generic risk questionnaire when no material gap exists.",
+      "choices": "Use the client's wording; examples may come only from their stated workflow."
+    },
+    {
+      "id": "Q_EXCLUDE",
+      "prompt": "What information must never appear in the output?",
+      "fields": [
+        "confidential",
+        "never_produce"
+      ],
+      "ask_when": "A stated confidentiality or forbidden-output requirement needs clarification.",
+      "choices": "Free text. Record exclusions verbatim; naming a requirement does not prove it is technically enforced."
+    },
+    {
+      "id": "Q_PRESERVE",
+      "prompt": "What wording must stay exactly as written?",
+      "fields": [
+        "protected",
+        "terminology"
+      ],
+      "ask_when": "Provided material requires exact wording or terminology but does not specify it clearly.",
+      "choices": "Free text or exact passages from supplied material."
+    },
+    {
+      "id": "Q_CONFLICT",
+      "prompt": "I found two different values for {field}: {existing} and {proposed}. Which should I keep?",
+      "fields": [],
+      "ask_when": "A material conflict or ambiguous replacement remains. Show both evidence sources. An explicit user instruction supplying the replacement already resolves it.",
+      "choices": "Keep existing; use proposed; or supply the correct value. Silence is unresolved."
+    },
+    {
+      "id": "Q_FIELD",
+      "prompt": "For {stated_requirement}, what should {missing_detail} be?",
+      "fields": [],
+      "ask_when": "A client-stated requirement maps to another existing schema field but lacks a required detail. Name that requirement, the exact field and its missing detail. Do not introduce requirements or ask about every optional field.",
+      "choices": "Use only evidence-backed choices allowed by that field's schema, otherwise free text."
+    }
+  ]
+}
