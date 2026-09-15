@@ -1,7 +1,7 @@
 {
   "_comment": "SINGLE SOURCE OF TRUTH for every host manifest. Never edit a generated manifest by hand — edit this, then run build/generate.py.",
   "name": "talyx-skills",
-  "version": "0.25.1",
+  "version": "0.25.2",
   "description": "Talyx skills for turning your own knowledge into repeatable work",
   "author": {
     "name": "Talyx"
@@ -30,7 +30,7 @@
   },
   "interface": {
     "shortDescription": "Reusable company setup for free Talyx workflows",
-    "longDescription": "Talyx Setup asks only for missing company preferences and uses a validated config writer to save reusable settings in your working folder.",
+    "longDescription": "Choose services and reusable company preferences. Talyx Setup uses existing connections when available and saves settings in your working folder with a validated config writer.",
     "category": "Productivity",
     "capabilities": [
       "Read",

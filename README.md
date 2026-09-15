@@ -58,8 +58,10 @@ instructions above for a Gem.
 
 ## Run Setup
 
-Ask “Set up Talyx,” answer the short questions and review the settings it prepares. A worksheet
-is optional. Setup uses your app's question forms when available and short chat questions otherwise.
+Ask “Set up Talyx.” Setup asks which services or folders to use, offers existing connections when
+available, and asks only for missing company preferences. You can choose files/folders only or
+connect services later. It uses your app's question forms when available and short chat questions
+otherwise. A worksheet is optional.
 
 [Setup](skills/talyx-setup/SKILL.md) reads existing settings and supplied material, asks only
 material gaps, and passes evidenced parameters to a bundled config writer. The writer checks
@@ -67,7 +69,8 @@ material gaps, and passes evidenced parameters to a bundled config writer. The w
 and saves `.talyx/config.yaml` in your working folder. It rejects ambiguous replacements and
 stale updates. Unknown existing fields are preserved and reported as unvalidated.
 
-The writer requires a POSIX runtime such as macOS or Linux, Python 3.10+ and the packages in
+The writer requires a POSIX runtime such as macOS or Linux with advisory directory locking,
+Python 3.10+ and the packages in
 [requirements.txt](skills/talyx-setup/scripts/requirements.txt); it does not install them or contact
 services. See [the runtime contract](skills/talyx-setup/references/runtime.md). Hosts without this
 runtime collect **provisional setup answers**. They cannot complete Setup by writing YAML in chat.
@@ -76,8 +79,10 @@ Gemini Apps and Copilot Agent Builder collect the same provisional parameters. S
 file for reuse, then use a supported local runtime to validate and save the actual config. Replacing
 a Knowledge file alone does not activate configuration or prove a workflow can consume it.
 
-Setup asks about reusable company context, inputs, output preferences, review and relevant human
-boundaries. It asks about the task and desired result only when needed to identify setup gaps.
+Setup records chosen services, reusable company context, inputs, output preferences, review and
+relevant human boundaries. A missing service connection does not block saving known preferences;
+access is checked separately before dependent work. The host owns sign-in and permissions.
+Setup asks about the task and desired result only when needed to identify setup gaps.
 Paid tiers, 2FA and Talyx connector/MCP onboarding remain outside free Setup. The
 subscription plugin and its authenticated connector are future work outside this package.
 
@@ -141,6 +146,10 @@ the checked-in definitions. ZIPs go in the ignored `dist/` folder; failed skill 
 build before creating or replacing a ZIP. Tests cover the actual config writer, execution from
 an extracted ZIP, repeatable generation and rejection of invalid skills. They use temporary
 workspaces, not live app installs or business workflows.
+
+Successful config saves require no file deletion or lock-file cleanup. The OS releases the
+writer's directory lock when it exits. Tests simulate denied deletion and exercise interrupted
+and competing writers; filesystem support in a particular host still needs a real run there.
 
 <details>
 <summary>Configuration reference — all 25 parameters</summary>

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import errno
 import hashlib
 import io
 import json
@@ -387,31 +388,50 @@ class ConfigHelper:
         self.validate(result.values)
         return result, modified
 
-    @contextmanager
     def lock(self, directory_fd):
+        """Hold a kernel lock until directory() closes this fd, even after errors.
+
+        A fresh open tests local lock exclusion on this filesystem. No lock file
+        needs deleting, and process exit releases the lock after interruption.
+        """
+        import fcntl
+
+        contention = {errno.EAGAIN, errno.EWOULDBLOCK, errno.EACCES}
         try:
-            fd = os.open(LOCK_NAME, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW, 0o600, dir_fd=directory_fd)
-        except FileExistsError as exc:
+            fcntl.flock(directory_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as exc:
+            if exc.errno in contention:
+                raise ConfigError(
+                    "CONFIG_LOCKED", "Cannot acquire the configuration lock; another update may be running.",
+                    recovery="Wait for the other update to finish, then inspect config.yaml and retry. Do not delete lock files.",
+                ) from exc
             raise ConfigError(
-                "CONFIG_LOCKED", "Another update or an interrupted update owns the configuration lock.",
-                lock_path=str(self.config_dir / LOCK_NAME),
-                recovery="Confirm no helper is running. Then manually remove this lock, inspect config.yaml again, and rebuild the request using its current digest.",
+                "LOCK_UNSUPPORTED", "This workspace does not support the required directory locking. Configuration was not changed.",
+                recovery="Use a local workspace with working advisory locks and atomic file replacement.",
             ) from exc
-        lock_info = os.fstat(fd)
+        probe_fd = os.open(".", os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory_fd)
         try:
-            with os.fdopen(fd, "w", encoding="utf-8") as stream:
-                json.dump({"pid": os.getpid(), "operation": "apply"}, stream)
-                stream.write("\n")
-                stream.flush()
-                os.fsync(stream.fileno())
-            yield
-        finally:
             try:
-                current = os.stat(LOCK_NAME, dir_fd=directory_fd, follow_symlinks=False)
-                if (current.st_dev, current.st_ino) == (lock_info.st_dev, lock_info.st_ino):
-                    os.unlink(LOCK_NAME, dir_fd=directory_fd)
-            except FileNotFoundError:
-                pass
+                fcntl.flock(probe_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except OSError as exc:
+                if exc.errno not in contention:
+                    raise ConfigError("LOCK_UNSUPPORTED", "Could not verify exclusive workspace locking. Configuration was not changed.") from exc
+            else:
+                raise ConfigError("LOCK_UNSUPPORTED", "The workspace did not enforce exclusive locking. Configuration was not changed.")
+        finally:
+            os.close(probe_fd)
+        self.check_legacy_lock(directory_fd)
+
+    def check_legacy_lock(self, directory_fd):
+        try:
+            os.stat(LOCK_NAME, dir_fd=directory_fd, follow_symlinks=False)
+        except FileNotFoundError:
+            return
+        raise ConfigError(
+            "CONFIG_LOCKED", "A lock from an older helper exists. It has been left untouched.",
+            lock_path=str(self.config_dir / LOCK_NAME),
+            recovery="Confirm no helper is running. Have the existing legacy lock reviewed before removing it, then inspect config.yaml and retry with the updated helper.",
+        )
 
     def check_directory(self, directory_fd):
         current = self.config_dir.lstat()
@@ -421,8 +441,11 @@ class ConfigHelper:
 
     def write(self, directory_fd, original, proposed):
         temporary = f".config.yaml.{uuid.uuid4().hex}.tmp"
+        temporary_pending = False
+        replaced = False
         try:
             fd = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW, 0o600, dir_fd=directory_fd)
+            temporary_pending = True
             with os.fdopen(fd, "wb") as stream:
                 os.fchmod(stream.fileno(), original.mode if original.mode is not None else 0o600)
                 stream.write(proposed.content)
@@ -432,9 +455,12 @@ class ConfigHelper:
             latest = self.read(directory_fd)
             if digest(latest.content) != digest(original.content) or latest.mode != original.mode:
                 raise ConfigError("CONCURRENT_CHANGE", "config.yaml changed while preparing the update. Original external change preserved; inspect again.")
+            self.check_legacy_lock(directory_fd)
             # The lock coordinates this helper. External writers do not participate;
             # the final digest check cannot eliminate their check/replace race.
             os.replace(temporary, CONFIG_NAME, src_dir_fd=directory_fd, dst_dir_fd=directory_fd)
+            temporary_pending = False
+            replaced = True
             os.fsync(directory_fd)
             self.check_directory(directory_fd)
             committed = self.read(directory_fd)
@@ -442,11 +468,26 @@ class ConfigHelper:
                 raise ConfigError("READBACK_MISMATCH", "Committed configuration failed read-back verification. Inspect the current file before retrying.", write_may_have_committed=True)
             self.validate(committed.values)
             return committed
-        finally:
-            try:
-                os.unlink(temporary, dir_fd=directory_fd)
-            except FileNotFoundError:
-                pass
+        except (Exception, KeyboardInterrupt) as exc:
+            failure = exc if isinstance(exc, ConfigError) else ConfigError(
+                "INTERRUPTED" if isinstance(exc, KeyboardInterrupt) else "IO_ERROR",
+                str(exc) or "Update interrupted.",
+            )
+            failure.details.setdefault("write_may_have_committed", replaced)
+            if temporary_pending:
+                try:
+                    os.unlink(temporary, dir_fd=directory_fd)
+                except FileNotFoundError:
+                    pass
+                except OSError as cleanup_error:
+                    failure.details["cleanup"] = {
+                        "temporary_path": str(self.config_dir / temporary),
+                        "message": str(cleanup_error),
+                        "recovery": "An uncommitted temporary file remains. It is not a lock and will not block a new request; inspect config.yaml before retrying.",
+                    }
+            if failure is exc:
+                raise
+            raise failure from exc
 
     def apply(self, request_path, dry_run):
         request = self.request(request_path)
@@ -456,16 +497,20 @@ class ConfigHelper:
         if dry_run or (not modified and original.content is not None):
             return self.receipt("apply", proposed, status="dry_run" if dry_run else "unchanged", written=False,
                                 base_sha256=digest(original.content), changed_fields=modified)
-        with self.directory(create=True) as directory_fd:
-            with self.lock(directory_fd):
+        committed = None
+        try:
+            with self.directory(create=True) as directory_fd:
+                self.lock(directory_fd)
                 self.check_directory(directory_fd)
                 current = self.read(directory_fd)
                 if digest(current.content) != digest(original.content):
                     raise ConfigError("CONCURRENT_CHANGE", "config.yaml changed before the update lock was acquired. Inspect again.")
                 committed = self.write(directory_fd, current, proposed)
+        except OSError as exc:
+            raise ConfigError("IO_ERROR", str(exc), write_may_have_committed=committed is not None) from exc
         return self.receipt("apply", committed, status="written", written=True,
                             base_sha256=digest(original.content), changed_fields=modified,
-                            concurrency_note="Helper writes are locked. Digest checks detect observed external changes; noncooperating writers can still race the final replacement.")
+                            concurrency_note="Updated helpers sharing this directory use an advisory lock. Older helpers and external writers do not participate; digest checks detect observed changes but cannot eliminate their final replacement race.")
 
 
 def main(argv=None):

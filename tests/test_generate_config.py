@@ -3,6 +3,7 @@
 import hashlib
 import json
 from pathlib import Path
+import selectors
 import signal
 import stat
 import subprocess
@@ -13,6 +14,12 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "skills/talyx-setup/scripts/generate_config.py"
+DENY_UNLINK = """import errno
+def deny_unlink(event, args):
+    if event == 'os.remove':
+        raise PermissionError(errno.EPERM, 'Fixture: all deletion denied', args[0])
+sys.addaudithook(deny_unlink)
+"""
 
 
 class GenerateConfigTests(unittest.TestCase):
@@ -255,23 +262,41 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertIn("Confirm no helper is running", result["error"]["recovery"])
         self.assertTrue(lock.exists())
 
-    def run_fault_injected_cli(self, prelude):
-        request = self.request({"tone": "Formal"})
+    def fault_injected_command(self, prelude, request=None):
+        if request is None:
+            request = self.request({"tone": "Formal"})
         self.request_path.write_text(json.dumps(request))
         arguments = [str(SCRIPT), "apply", "--workspace", str(self.workspace), "--request", str(self.request_path)]
         code = "import os, runpy, signal, sys\n" + prelude + "\nsys.argv = " + repr(arguments) + "\nrunpy.run_path(sys.argv[0], run_name='__main__')\n"
-        return subprocess.run([sys.executable, "-c", code], text=True, capture_output=True, timeout=15)
+        return [sys.executable, "-c", code]
+
+    def run_fault_injected_cli(self, prelude, request=None):
+        return subprocess.run(self.fault_injected_command(prelude, request), text=True, capture_output=True, timeout=15)
+
+    def test_fault_injected_all_deletion_denied_allows_first_and_second_apply(self):
+        for changes in ({"org_name": "Acme"}, {"tone": "Formal"}):
+            with self.subTest(changes=changes):
+                result = self.run_fault_injected_cli(DENY_UNLINK, self.request(changes))
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                receipt = json.loads(result.stdout)
+                self.assertEqual(receipt["status"], "written")
+                self.assertEqual(receipt["sha256"], hashlib.sha256(self.config.read_bytes()).hexdigest())
+                self.assertFalse((self.config.parent / ".config.yaml.lock").exists())
+                self.assertEqual(list(self.config.parent.iterdir()), [self.config])
+        self.assertEqual(self.run_cli("inspect")["current_values"], {"org_name": "Acme", "tone": "Formal"})
 
     @unittest.skipUnless(hasattr(signal, "SIGTERM"), "Requires POSIX signals")
-    def test_fault_injected_interruption_before_replace_keeps_original_and_lock(self):
+    def test_fault_injected_interruption_with_deletion_denied_releases_lock(self):
         original = b"org_name: Original\n"
         self.write_config(original)
-        result = self.run_fault_injected_cli("os.replace = lambda *args, **kwargs: os.kill(os.getpid(), signal.SIGTERM)")
+        result = self.run_fault_injected_cli(DENY_UNLINK + "\nos.replace = lambda *args, **kwargs: os.kill(os.getpid(), signal.SIGTERM)")
         self.assertEqual(result.returncode, -signal.SIGTERM, result.stdout + result.stderr)
         self.assertEqual(self.config.read_bytes(), original)
-        self.assertTrue((self.config.parent / ".config.yaml.lock").exists())
-        self.assert_rejected(self.request({"tone": "Formal"}), "CONFIG_LOCKED")
-        self.run_cli("validate")
+        self.assertFalse((self.config.parent / ".config.yaml.lock").exists())
+        self.assertEqual(len(list(self.config.parent.glob(".config.yaml.*.tmp"))), 1)
+        retry = self.run_fault_injected_cli(DENY_UNLINK)
+        self.assertEqual(retry.returncode, 0, retry.stdout + retry.stderr)
+        self.assertEqual(self.run_cli("validate")["current_values"], {"org_name": "Original", "tone": "Formal"})
 
     def test_fault_injected_external_write_is_caught_before_replace(self):
         self.write_config(b"org_name: Original\n")
@@ -281,7 +306,7 @@ def fsync_with_external_write(fd):
     global calls
     calls += 1
     original_fsync(fd)
-    if calls == 2:
+    if calls == 1:
         with open({str(self.config)!r}, 'wb') as stream:
             stream.write(b'org_name: External edit\\n')
 os.fsync = fsync_with_external_write
@@ -291,6 +316,113 @@ os.fsync = fsync_with_external_write
         self.assertEqual(json.loads(result.stdout)["error"]["code"], "CONCURRENT_CHANGE")
         self.assertEqual(self.config.read_bytes(), b"org_name: External edit\n")
         self.assertEqual(list(self.config.parent.iterdir()), [self.config])
+
+    def test_fault_injected_deletion_denied_keeps_primary_failure_and_allows_retry(self):
+        self.write_config(b"org_name: Original\n")
+        prelude = DENY_UNLINK + f"""
+original_fsync = os.fsync
+changed = False
+def fsync_with_external_write(fd):
+    global changed
+    original_fsync(fd)
+    if not changed:
+        changed = True
+        with open({str(self.config)!r}, 'wb') as stream:
+            stream.write(b'org_name: External edit\\n')
+os.fsync = fsync_with_external_write
+"""
+        result = self.run_fault_injected_cli(prelude)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        error = json.loads(result.stdout)["error"]
+        self.assertEqual(error["code"], "CONCURRENT_CHANGE")
+        self.assertFalse(error["write_may_have_committed"])
+        self.assertTrue(Path(error["cleanup"]["temporary_path"]).exists())
+        self.assertIn("not a lock", error["cleanup"]["recovery"])
+        self.assertEqual(self.config.read_bytes(), b"org_name: External edit\n")
+        retry = self.run_fault_injected_cli(DENY_UNLINK)
+        self.assertEqual(retry.returncode, 0, retry.stdout + retry.stderr)
+
+    def test_fault_injected_post_replace_failure_reports_committed_state(self):
+        self.write_config(b"org_name: Original\n")
+        prelude = DENY_UNLINK + """
+import stat
+original_fsync = os.fsync
+def fail_directory_fsync(fd):
+    if stat.S_ISDIR(os.fstat(fd).st_mode):
+        raise OSError(errno.EIO, 'Fixture: directory sync failed after replacement')
+    original_fsync(fd)
+os.fsync = fail_directory_fsync
+"""
+        result = self.run_fault_injected_cli(prelude)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        error = json.loads(result.stdout)["error"]
+        self.assertEqual(error["code"], "IO_ERROR")
+        self.assertTrue(error["write_may_have_committed"])
+        self.assertNotIn("cleanup", error)
+        self.assertEqual(self.run_cli("inspect")["current_values"], {"org_name": "Original", "tone": "Formal"})
+        retry = self.run_fault_injected_cli(DENY_UNLINK, self.request({"on_conflict": "note"}))
+        self.assertEqual(retry.returncode, 0, retry.stdout + retry.stderr)
+
+    def test_fault_injected_temp_collision_never_deletes_existing_file(self):
+        self.write_config(b"org_name: Original\n")
+        collision = self.config.parent / (".config.yaml." + "a" * 32 + ".tmp")
+        collision.write_bytes(b"Existing file owned by another operation\n")
+        prelude = "import uuid\nfrom types import SimpleNamespace\nuuid.uuid4 = lambda: SimpleNamespace(hex='a' * 32)\n"
+        result = self.run_fault_injected_cli(prelude)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertEqual(json.loads(result.stdout)["error"]["code"], "IO_ERROR")
+        self.assertEqual(collision.read_bytes(), b"Existing file owned by another operation\n")
+        self.assertEqual(self.config.read_bytes(), b"org_name: Original\n")
+
+    def test_fault_injected_unsupported_or_ineffective_lock_fails_before_write(self):
+        for behavior in ("raise OSError(errno.EOPNOTSUPP, 'Fixture: locking unsupported')", "return None"):
+            with self.subTest(behavior=behavior):
+                prelude = "import fcntl, errno\ndef unsupported_lock(*args):\n    " + behavior + "\nfcntl.flock = unsupported_lock\n"
+                result = self.run_fault_injected_cli(prelude)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertEqual(json.loads(result.stdout)["error"]["code"], "LOCK_UNSUPPORTED")
+                self.assertFalse(self.config.exists())
+                self.assertEqual(list(self.config.parent.iterdir()), [])
+
+    def test_real_concurrent_writers_are_excluded_when_deletion_is_denied(self):
+        original = b"org_name: Original\n"
+        self.write_config(original)
+        prelude = DENY_UNLINK + """
+original_replace = os.replace
+def pause_before_replace(*args, **kwargs):
+    print('LOCK_HELD', flush=True)
+    sys.stdin.readline()
+    return original_replace(*args, **kwargs)
+os.replace = pause_before_replace
+"""
+        writer = subprocess.Popen(self.fault_injected_command(prelude), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            with selectors.DefaultSelector() as ready:
+                ready.register(writer.stdout, selectors.EVENT_READ)
+                self.assertTrue(ready.select(timeout=10), "Writer did not reach the held-lock checkpoint")
+            self.assertEqual(writer.stdout.readline(), "LOCK_HELD\n")
+            contender = self.run_fault_injected_cli(DENY_UNLINK, self.request({"on_conflict": "note"}))
+            self.assertEqual(contender.returncode, 1, contender.stdout + contender.stderr)
+            self.assertEqual(json.loads(contender.stdout)["error"]["code"], "CONFIG_LOCKED")
+            self.assertEqual(self.config.read_bytes(), original)
+            output, errors = writer.communicate("\n", timeout=15)
+            self.assertEqual(writer.returncode, 0, output + errors)
+            self.assertEqual(json.loads(output)["status"], "written")
+            retry = self.run_fault_injected_cli(DENY_UNLINK, self.request({"on_conflict": "note"}))
+            self.assertEqual(retry.returncode, 0, retry.stdout + retry.stderr)
+        finally:
+            if writer.poll() is None:
+                writer.kill()
+            writer.communicate(timeout=5)
+
+    def test_legacy_lock_symlink_is_never_followed_or_removed(self):
+        self.write_config(b"org_name: Original\n")
+        outside = Path(self.temporary.name) / "missing-legacy-owner"
+        lock = self.config.parent / ".config.yaml.lock"
+        lock.symlink_to(outside)
+        self.assert_rejected(self.request({"tone": "Formal"}), "CONFIG_LOCKED")
+        self.assertTrue(lock.is_symlink())
+        self.assertFalse(outside.exists())
 
     def test_folder_destinations_reject_absolute_traversal_and_symlink_escape(self):
         (self.workspace / "escape").symlink_to(Path(self.temporary.name))

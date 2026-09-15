@@ -52,11 +52,12 @@ another existing field, use Q_FIELD below. Never invent a new config field.
 
 ## Q_INPUT
 
-**Ask:** Which files or sources should Talyx use for this work?
+**Ask:** Which services or folders should Talyx use, and what should it use each for?
 
 - **Fields:** `inputs`, `sources`
-- **Ask when:** Reusable inputs or permitted sources are needed and remain unclear. One-off files, subjects and dates belong to the workflow run, not shared setup.
-- **Choices:** Offer named supplied material, a chosen working folder, or a connection the host actually exposes. If access is unavailable, offer an export/upload without claiming it is connected.
+- **Ask when:** On first setup when the service/source choice is not already explicit, even without a selected workflow. On updates, ask only when service choices or purposes need changing or clarification. An explicit files/folders-only or decide-later answer resolves the choice. One-off files and dates stay with the workflow run.
+- **Choices:** Offer relevant connections discovered through actual host tools, files/folders only, or decide later. Accept another service by name. Do not assume the working folder is a data source or that an available tool is authorized.
+- **If access missing:** For a selected service, ask: Connect {service} through {host}, use an export/upload, or leave it for later? Use a native connection flow only when exposed, otherwise verified host instructions. Recheck actual access after authorization. Save known preferences even if connecting is deferred; never store credentials or an invented connected flag.
 
 ## Q_DESTINATION
 
