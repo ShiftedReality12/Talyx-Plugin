@@ -115,10 +115,11 @@ def write_setup_resources(schema):
         "<!-- Generated from build/config-schema.json. -->\n\n" + build_mapping_block(schema))
     rows = ["# Setup questions for the free Talyx plugin", "",
             "<!-- Generated from build/config-schema.json. -->", "",
-            "Use these question IDs and their conditions. Ask only unresolved questions that affect",
-            "the requested setup; this is not a checklist to ask every client. Keep wording as written",
-            "except to insert evidenced task, output, person or source names and conflicting values. For a gap in",
-            "another existing field, use Q_FIELD below. Never invent a new config field.", ""]
+            "Use these questions and their conditions to cover full setup or the requested update.",
+            "Ask only unanswered clauses, inserting evidenced names and context. Keep the meaning;",
+            "use everyday language and never display question IDs, field names or implementation notes.",
+            "Use Q_FIELD for a necessary missing detail. Do not invent fields or skip a core topic",
+            "because a file exists. Explicit no preference, use defaults or later answers are valid.", ""]
     for question in schema["setup_questions"]:
         rows += ["## " + question["id"], "", "**Ask:** " + question["prompt"], ""]
         for name, value in question.items():

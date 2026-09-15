@@ -652,39 +652,59 @@
       "id": "Q_WORK",
       "prompt": "What recurring task would you like help with, and what should it produce?",
       "fields": [],
-      "ask_when": "The task or desired result is unclear and is needed to identify material setup gaps. Skip when the user already named the task, is changing a known setting, or only wants company-wide preferences. Do not impose a workflow menu.",
+      "ask_when": "A particular task was mentioned but its intended result is still unclear and needed to target questions. Skip when already answered, when collecting general company preferences, or during an unrelated targeted update. Never impose a workflow menu.",
       "choices": "Free text, or concrete tasks the user already named. Use the answer to target questions; do not invent a workflow-name or outcome config field."
     },
     {
       "id": "Q_CONTEXT",
-      "prompt": "What company and role should Talyx use as context?",
+      "prompt": "What does your company do, who does it serve, and what work are you responsible for?",
       "fields": [
         "org_name",
         "org_description",
         "people"
       ],
-      "ask_when": "Reusable company or role context is relevant and the material does not establish it. Keep unneeded context absent; a self-contained task does not require a company profile.",
-      "choices": "Free text. Extract company, role and responsibilities only when stated."
+      "ask_when": "During full setup, when company context or the user’s responsibilities are unknown. Ask only missing parts. An existing company name alone does not answer what it does; use supplied material before asking. Skip unrelated context during a targeted settings update.",
+      "choices": "Free text, existing company material, or explicitly defer. Record only stated business, customers, names, roles and responsibilities; do not infer missing people properties."
     },
     {
       "id": "Q_INPUT",
-      "prompt": "Which services or folders should Talyx use, and what should it use each for?",
+      "prompt": "Which services or folders should Talyx use, and what material should it find in each?",
       "fields": [
         "inputs",
         "sources"
       ],
-      "ask_when": "On first setup when the service/source choice is not already explicit, even without a selected workflow. On updates, ask only when service choices or purposes need changing or clarification. An explicit files/folders-only or decide-later answer resolves the choice. One-off files and dates stay with the workflow run.",
-      "choices": "Offer relevant connections discovered through actual host tools, files/folders only, or decide later. Accept another service by name. If only the service is answered, ask only for its purpose and store that wording verbatim in sources.holds. Do not assume the working folder is a data source or that an available tool is authorized.",
-      "if_access_missing": "For a selected service, ask: Connect {service} through {host}, use an export/upload, or leave it for later? Use a native connection flow only when exposed, otherwise verified host instructions. Recheck actual access after authorization. Save known preferences even if connecting is deferred; never store credentials or an invented connected flag."
+      "ask_when": "During full setup, cover source choice, material or recurring inputs, and where to find them. A service name with a broad purpose leaves its search location unresolved unless the user has chosen account-wide search. Reuse known answers; ask only the missing part. On targeted updates, ask only about the affected sources. Files/folders only or decide later are valid explicit choices.",
+      "choices": "Offer actual discovered services, files/folders only, or decide later; accept another named service. Record exact source purposes. Capture reusable inputs and templates when supplied, not a particular meeting’s files or attendees. Never infer that the working folder is a source or that a visible tool is authorized.",
+      "if_access_missing": "For a selected service, ask: Connect {service} through {host}, use an export/upload, or leave it for later? Use a native connection flow only when exposed, otherwise verified host instructions. Recheck actual access after authorization. Save known preferences even if connecting is deferred; never store credentials or an invented connected flag.",
+      "if_location_missing": "Which folders or collections in {service} should Talyx use for {material}, or should it search everything you have authorized it to access there? Accept folder names, links, an explicit broad-search choice, or later. Store the chosen location in sources.path and its purpose in sources.holds; keep recurring named inputs in inputs. Do not guess folder IDs or imply permission beyond the host’s actual grants."
     },
     {
-      "id": "Q_DESTINATION",
-      "prompt": "Where should Talyx save the results?",
+      "id": "Q_OUTPUT",
+      "prompt": "What should Talyx’s results look like, and where should it save them?",
       "fields": [
+        "rules",
+        "tone",
+        "terminology",
+        "inputs",
+        "sources",
         "destination"
       ],
-      "ask_when": "The requested destination is unclear or differs from the documented local talyx-output folder. Otherwise apply the existing destination or report the default without asking.",
-      "choices": "The local output folder or another user-named permitted destination. An external destination is a preference, not permission to send."
+      "ask_when": "During full setup, when desired content, format, a reusable template, writing preferences or destination have not been addressed. Ask only unanswered parts. Do not silently choose the default destination to skip this topic. On targeted updates, clarify only an affected output preference.",
+      "choices": "Describe the desired result or name an existing template/example; no format preference is valid. Offer this working folder or another user-named destination. If this folder is selected, use its talyx-output subfolder. Existing saved preferences resolve their parts; an explicit use-defaults or later answer resolves the remaining choice. Save recurring output requirements verbatim in rules, voice in tone, reusable templates in inputs/sources, and destination in destination. Keep the client’s stated task scope; a task-specific format is not automatically a rule for every workflow. External destinations do not authorize sending."
+    },
+    {
+      "id": "Q_RULES",
+      "prompt": "Are there instructions Talyx should always follow, or decisions you want left to a person?",
+      "fields": [
+        "rules",
+        "verify",
+        "never_decide",
+        "never_produce",
+        "protected",
+        "confidential"
+      ],
+      "ask_when": "During full setup when standing instructions and human boundaries have not been addressed. Offer this once even if the user has not volunteered a restriction. Existing supplied rules resolve what they cover. Skip unrelated rule questions during a targeted update.",
+      "choices": "No special rules, describe the instructions or boundaries, or decide later. Ask Q_HUMAN, Q_EXCLUDE or Q_PRESERVE only for a real ambiguity in the answer. No special rules does not disable review or other defaults; leave unsupported settings absent. Preserve exact wording and stated scope."
     },
     {
       "id": "Q_REVIEW",
@@ -693,7 +713,7 @@
         "reviewers",
         "review_required"
       ],
-      "ask_when": "A reviewer is material to this client's workflow and has not been identified. Review stays required by default; never invent a reviewer.",
+      "ask_when": "During full setup when the reviewer and what they review are unknown; reuse existing reviewer settings without reconfirmation. On a targeted update, ask only if review is affected. The user may defer identifying a reviewer; review remains required by default.",
       "choices": "Me, or someone else (ask for their name and what they review). Map Me only when the person's identity is supplied; otherwise retain the unresolved identity."
     },
     {
@@ -730,13 +750,13 @@
       "prompt": "I found two different values for {field}: {existing} and {proposed}. Which should I keep?",
       "fields": [],
       "ask_when": "A material conflict or ambiguous replacement remains. Show both evidence sources. An explicit user instruction supplying the replacement already resolves it.",
-      "choices": "Keep existing; use proposed; or supply the correct value. Silence is unresolved."
+      "choices": "Keep existing; use proposed; or supply the correct value. Name the setting in everyday language, never its config key. Silence is unresolved."
     },
     {
       "id": "Q_FIELD",
       "prompt": "For {stated_requirement}, what should {missing_detail} be?",
       "fields": [],
-      "ask_when": "A client-stated requirement maps to another existing schema field but lacks a required detail. Name that requirement, the exact field and its missing detail. Do not introduce requirements or ask about every optional field.",
+      "ask_when": "A stated requirement or unanswered core setup topic maps to an existing field but lacks a necessary detail. Ask for that detail in everyday language; do not show field names, question IDs or schema terminology. Do not introduce unrelated requirements.",
       "choices": "Use only evidence-backed choices allowed by that field's schema, otherwise free text."
     }
   ]

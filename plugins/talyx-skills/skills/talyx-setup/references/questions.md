@@ -2,10 +2,11 @@
 
 <!-- Generated from build/config-schema.json. -->
 
-Use these question IDs and their conditions. Ask only unresolved questions that affect
-the requested setup; this is not a checklist to ask every client. Keep wording as written
-except to insert evidenced task, output, person or source names and conflicting values. For a gap in
-another existing field, use Q_FIELD below. Never invent a new config field.
+Use these questions and their conditions to cover full setup or the requested update.
+Ask only unanswered clauses, inserting evidenced names and context. Keep the meaning;
+use everyday language and never display question IDs, field names or implementation notes.
+Use Q_FIELD for a necessary missing detail. Do not invent fields or skip a core topic
+because a file exists. Explicit no preference, use defaults or later answers are valid.
 
 ## Q_FOLDER
 
@@ -20,40 +21,49 @@ another existing field, use Q_FIELD below. Never invent a new config field.
 **Ask:** What recurring task would you like help with, and what should it produce?
 
 - **Fields:** Context for question routing only; no stored config key.
-- **Ask when:** The task or desired result is unclear and is needed to identify material setup gaps. Skip when the user already named the task, is changing a known setting, or only wants company-wide preferences. Do not impose a workflow menu.
+- **Ask when:** A particular task was mentioned but its intended result is still unclear and needed to target questions. Skip when already answered, when collecting general company preferences, or during an unrelated targeted update. Never impose a workflow menu.
 - **Choices:** Free text, or concrete tasks the user already named. Use the answer to target questions; do not invent a workflow-name or outcome config field.
 
 ## Q_CONTEXT
 
-**Ask:** What company and role should Talyx use as context?
+**Ask:** What does your company do, who does it serve, and what work are you responsible for?
 
 - **Fields:** `org_name`, `org_description`, `people`
-- **Ask when:** Reusable company or role context is relevant and the material does not establish it. Keep unneeded context absent; a self-contained task does not require a company profile.
-- **Choices:** Free text. Extract company, role and responsibilities only when stated.
+- **Ask when:** During full setup, when company context or the user’s responsibilities are unknown. Ask only missing parts. An existing company name alone does not answer what it does; use supplied material before asking. Skip unrelated context during a targeted settings update.
+- **Choices:** Free text, existing company material, or explicitly defer. Record only stated business, customers, names, roles and responsibilities; do not infer missing people properties.
 
 ## Q_INPUT
 
-**Ask:** Which services or folders should Talyx use, and what should it use each for?
+**Ask:** Which services or folders should Talyx use, and what material should it find in each?
 
 - **Fields:** `inputs`, `sources`
-- **Ask when:** On first setup when the service/source choice is not already explicit, even without a selected workflow. On updates, ask only when service choices or purposes need changing or clarification. An explicit files/folders-only or decide-later answer resolves the choice. One-off files and dates stay with the workflow run.
-- **Choices:** Offer relevant connections discovered through actual host tools, files/folders only, or decide later. Accept another service by name. If only the service is answered, ask only for its purpose and store that wording verbatim in sources.holds. Do not assume the working folder is a data source or that an available tool is authorized.
+- **Ask when:** During full setup, cover source choice, material or recurring inputs, and where to find them. A service name with a broad purpose leaves its search location unresolved unless the user has chosen account-wide search. Reuse known answers; ask only the missing part. On targeted updates, ask only about the affected sources. Files/folders only or decide later are valid explicit choices.
+- **Choices:** Offer actual discovered services, files/folders only, or decide later; accept another named service. Record exact source purposes. Capture reusable inputs and templates when supplied, not a particular meeting’s files or attendees. Never infer that the working folder is a source or that a visible tool is authorized.
 - **If access missing:** For a selected service, ask: Connect {service} through {host}, use an export/upload, or leave it for later? Use a native connection flow only when exposed, otherwise verified host instructions. Recheck actual access after authorization. Save known preferences even if connecting is deferred; never store credentials or an invented connected flag.
+- **If location missing:** Which folders or collections in {service} should Talyx use for {material}, or should it search everything you have authorized it to access there? Accept folder names, links, an explicit broad-search choice, or later. Store the chosen location in sources.path and its purpose in sources.holds; keep recurring named inputs in inputs. Do not guess folder IDs or imply permission beyond the host’s actual grants.
 
-## Q_DESTINATION
+## Q_OUTPUT
 
-**Ask:** Where should Talyx save the results?
+**Ask:** What should Talyx’s results look like, and where should it save them?
 
-- **Fields:** `destination`
-- **Ask when:** The requested destination is unclear or differs from the documented local talyx-output folder. Otherwise apply the existing destination or report the default without asking.
-- **Choices:** The local output folder or another user-named permitted destination. An external destination is a preference, not permission to send.
+- **Fields:** `rules`, `tone`, `terminology`, `inputs`, `sources`, `destination`
+- **Ask when:** During full setup, when desired content, format, a reusable template, writing preferences or destination have not been addressed. Ask only unanswered parts. Do not silently choose the default destination to skip this topic. On targeted updates, clarify only an affected output preference.
+- **Choices:** Describe the desired result or name an existing template/example; no format preference is valid. Offer this working folder or another user-named destination. If this folder is selected, use its talyx-output subfolder. Existing saved preferences resolve their parts; an explicit use-defaults or later answer resolves the remaining choice. Save recurring output requirements verbatim in rules, voice in tone, reusable templates in inputs/sources, and destination in destination. Keep the client’s stated task scope; a task-specific format is not automatically a rule for every workflow. External destinations do not authorize sending.
+
+## Q_RULES
+
+**Ask:** Are there instructions Talyx should always follow, or decisions you want left to a person?
+
+- **Fields:** `rules`, `verify`, `never_decide`, `never_produce`, `protected`, `confidential`
+- **Ask when:** During full setup when standing instructions and human boundaries have not been addressed. Offer this once even if the user has not volunteered a restriction. Existing supplied rules resolve what they cover. Skip unrelated rule questions during a targeted update.
+- **Choices:** No special rules, describe the instructions or boundaries, or decide later. Ask Q_HUMAN, Q_EXCLUDE or Q_PRESERVE only for a real ambiguity in the answer. No special rules does not disable review or other defaults; leave unsupported settings absent. Preserve exact wording and stated scope.
 
 ## Q_REVIEW
 
 **Ask:** Who should review the results before they are used or shared?
 
 - **Fields:** `reviewers`, `review_required`
-- **Ask when:** A reviewer is material to this client's workflow and has not been identified. Review stays required by default; never invent a reviewer.
+- **Ask when:** During full setup when the reviewer and what they review are unknown; reuse existing reviewer settings without reconfirmation. On a targeted update, ask only if review is affected. The user may defer identifying a reviewer; review remains required by default.
 - **Choices:** Me, or someone else (ask for their name and what they review). Map Me only when the person's identity is supplied; otherwise retain the unresolved identity.
 
 ## Q_HUMAN
@@ -86,12 +96,12 @@ another existing field, use Q_FIELD below. Never invent a new config field.
 
 - **Fields:** The identified existing field; no new key.
 - **Ask when:** A material conflict or ambiguous replacement remains. Show both evidence sources. An explicit user instruction supplying the replacement already resolves it.
-- **Choices:** Keep existing; use proposed; or supply the correct value. Silence is unresolved.
+- **Choices:** Keep existing; use proposed; or supply the correct value. Name the setting in everyday language, never its config key. Silence is unresolved.
 
 ## Q_FIELD
 
 **Ask:** For {stated_requirement}, what should {missing_detail} be?
 
 - **Fields:** The identified existing field; no new key.
-- **Ask when:** A client-stated requirement maps to another existing schema field but lacks a required detail. Name that requirement, the exact field and its missing detail. Do not introduce requirements or ask about every optional field.
+- **Ask when:** A stated requirement or unanswered core setup topic maps to an existing field but lacks a necessary detail. Ask for that detail in everyday language; do not show field names, question IDs or schema terminology. Do not introduce unrelated requirements.
 - **Choices:** Use only evidence-backed choices allowed by that field's schema, otherwise free text.

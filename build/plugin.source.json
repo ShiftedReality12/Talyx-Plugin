@@ -1,7 +1,7 @@
 {
   "_comment": "SINGLE SOURCE OF TRUTH for every host manifest. Never edit a generated manifest by hand — edit this, then run build/generate.py.",
   "name": "talyx-skills",
-  "version": "0.25.3",
+  "version": "0.25.4",
   "description": "Talyx skills for turning your own knowledge into repeatable work",
   "author": {
     "name": "Talyx"

@@ -118,8 +118,10 @@ already supplies that authority; do not add a second approval step.
 ## Receipt and consumer acceptance
 
 The JSON result reports status, schema version, digest, current values, effective defaults and
-unknown fields where applicable. Keep that detail in the receipt; the client usually needs only
-the saved path, selected services and any unresolved action. Only a successful apply/read-back followed by successful
+unknown fields where applicable. Keep these internal details in the receipt. Client conversation
+contains only practical questions, a brief confirmation in plain language, and any necessary action;
+explain failures by their effect rather than displaying code, raw errors or implementation details.
+Only a successful apply/read-back followed by successful
 validation establishes that this writer saved structurally valid known settings.
 
 It does not establish fact accuracy, source access, permissions, compliance, or workflow readiness.

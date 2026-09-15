@@ -46,10 +46,12 @@ Enter these commands inside a Claude Code conversation:
 
 ## Run Setup
 
-Ask “Set up Talyx.” Setup asks which services or folders to use, offers existing connections when
-available, and asks only for missing company preferences. You can choose files/folders only or
-connect services later. It uses your app's question forms when available and short chat questions
-otherwise. A worksheet is optional. The host owns sign-in and permissions.
+Ask “Set up Talyx.” Setup covers your company and role, where to find reusable material, what
+results should look like and where to save them, standing instructions, and review. It uses what
+you have already supplied and asks only unanswered questions. You can choose files/folders only,
+use defaults, or leave a choice for later. A specific settings update does not restart the interview.
+You see practical questions and a short confirmation; saving and checking happen in the background.
+A worksheet is optional. Your app handles sign-in and permissions.
 
 [Setup](skills/talyx-setup/SKILL.md) reads existing settings and supplied material, then passes
 evidenced parameters to [the bundled writer](skills/talyx-setup/scripts/generate_config.py).
