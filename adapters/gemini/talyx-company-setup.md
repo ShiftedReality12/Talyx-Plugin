@@ -34,6 +34,14 @@ the requested setup; this is not a checklist to ask every client. Keep wording a
 except to insert evidenced task, output, person or source names and conflicting values. For a gap in
 another existing field, use Q_FIELD below. Never invent a new config field.
 
+## Q_FOLDER
+
+**Ask:** Where should Talyx save your settings? Choose an existing working folder, or give a new folder name and where to create it.
+
+- **Fields:** Workspace location only; no stored config key.
+- **Ask when:** Only when no current or previously chosen working folder is established and local setup can save a config. Reuse an unambiguous folder answer; ask only for a missing location, never whether its name means a test.
+- **Choices:** Use the host's actual folder picker when available, or accept a path. For a new folder, obtain access to its existing parent if needed, create it using available tools, and verify it. Request manual creation only after establishing the specific capability or access blocker. The working folder is not automatically a data source.
+
 ## Q_WORK
 
 **Ask:** What recurring task would you like help with, and what should it produce?
@@ -56,7 +64,7 @@ another existing field, use Q_FIELD below. Never invent a new config field.
 
 - **Fields:** `inputs`, `sources`
 - **Ask when:** On first setup when the service/source choice is not already explicit, even without a selected workflow. On updates, ask only when service choices or purposes need changing or clarification. An explicit files/folders-only or decide-later answer resolves the choice. One-off files and dates stay with the workflow run.
-- **Choices:** Offer relevant connections discovered through actual host tools, files/folders only, or decide later. Accept another service by name. Do not assume the working folder is a data source or that an available tool is authorized.
+- **Choices:** Offer relevant connections discovered through actual host tools, files/folders only, or decide later. Accept another service by name. If only the service is answered, ask only for its purpose and store that wording verbatim in sources.holds. Do not assume the working folder is a data source or that an available tool is authorized.
 - **If access missing:** For a selected service, ask: Connect {service} through {host}, use an export/upload, or leave it for later? Use a native connection flow only when exposed, otherwise verified host instructions. Recheck actual access after authorization. Save known preferences even if connecting is deferred; never store credentials or an invented connected flag.
 
 ## Q_DESTINATION

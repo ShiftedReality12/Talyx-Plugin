@@ -19,6 +19,11 @@ requirements. Resolve their paths and the chosen working folder in the **same ex
 Cowork's device file tools and code execution can use different environments. Do not assume a
 device path or Claude Code's path variables also work in the Cowork execution environment.
 
+The workspace must exist before `inspect`. Create a requested folder through the host's native
+tools or supported execution inside its authorized parent, then resolve the resulting mount path.
+Do not create a same-named folder in a VM's private filesystem and report it as a folder on the Mac.
+The writer creates `.talyx` when saving; it deliberately does not choose or create the workspace.
+
 Execute the installed writer directly when accessible. If a transfer is necessary, use an actual
 byte-preserving file-copy/transfer tool into private runtime scratch space and retain the relative
 layout (`scripts/generate_config.py`, `scripts/requirements.txt`, `config.schema.json`). Host text/file

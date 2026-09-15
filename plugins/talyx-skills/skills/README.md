@@ -30,9 +30,6 @@ Add each workflow skill as a sibling of `talyx-setup/` when supplied. Its accept
 that it reads the writer's saved config and follows the relevant settings in its actual output.
 No placeholder workflow establishes that connection.
 
-The canonical [schema definitions](../build/config-schema.json), [generator](../build/generate.py)
-and [CLI tests](../tests/test_generate_config.py) live in this repository.
-Generated schema, question reference, mapping, default documentation and chat adaptations must
-be regenerated together. Subscription onboarding and connector work stay outside this free package.
-
 See the [plugin README](../README.md) for installation and host limitations.
+Canonical build definitions and development tests live in the
+[source repository](https://github.com/ShiftedReality12/Talyx-Plugin), outside the installed plugin.

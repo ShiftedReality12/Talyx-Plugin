@@ -9,6 +9,8 @@ edit that file and re-run this script. Never edit a generated manifest directly.
 These canonical build sources live in the repository. The free Setup skill ships one
 local Python config writer, its pinned dependencies and a generated JSON Schema.
 The writer does not install dependencies, contact services or run workflows.
+Only plugins/talyx-skills is installed; root catalogues select that payload while
+build tooling, tests and chat adapters remain separate repository materials.
 
 Usage:  python3 build/generate.py
 """
@@ -21,7 +23,8 @@ import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-PLUGIN = ROOT
+PLUGIN_SOURCE = "./plugins/talyx-skills"
+PLUGIN = os.path.join(ROOT, "plugins", "talyx-skills")
 DIST = os.path.join(ROOT, "dist")
 SOURCE = os.path.join(HERE, "plugin.source.json")
 
@@ -124,8 +127,10 @@ def write_setup_resources(schema):
             label = name.replace("_", " ").capitalize()
             rendered = ", ".join("`%s`" % v for v in value) if isinstance(value, list) else value
             if name == "fields" and not value:
-                rendered = ("Context for question routing only; no stored config key."
-                            if question["id"] == "Q_WORK" else "The identified existing field; no new key.")
+                rendered = {
+                    "Q_WORK": "Context for question routing only; no stored config key.",
+                    "Q_FOLDER": "Workspace location only; no stored config key.",
+                }.get(question["id"], "The identified existing field; no new key.")
             rows.append("- **%s:** %s" % (label, rendered))
         rows.append("")
     open(os.path.join(refs, "questions.md"), "w", encoding="utf-8").write("\n".join(rows))
@@ -141,7 +146,7 @@ def write_chat_adapters(schema):
         ("gemini", "talyx-company-setup.md", "gemini-gem-instructions.txt"),
         ("m365-copilot", "talyx-company-setup.txt", "copilot-agent-instructions.txt"),
     ):
-        folder = os.path.join(PLUGIN, "adapters", host)
+        folder = os.path.join(ROOT, "adapters", host)
         open(os.path.join(folder, instruction_filename), "w", encoding="utf-8").write(
             instructions.replace("{knowledge_file}", filename))
         provisional = {"schema_version": schema["version"], "changes": {}, "evidence": {},
@@ -322,12 +327,10 @@ def build_manifest(src, profile):
 
 
 def build_gemini_manifest(src):
-    """Gemini CLI extension manifest: root `gemini-extension.json`, not a host subfolder.
+    """Gemini CLI extension manifest at the installable payload root.
 
-    Gallery discovery is automatic for a public repo carrying the GitHub topic
-    `gemini-cli-extension` plus this file at the repo root -- no submission, no
-    review. Only name/version/description are ours to set; skills are picked up
-    from the existing `skills/` directory with no manifest entry needed.
+    The extension is installed from that local directory. Only name, version and
+    description are ours to set; skills use the adjacent `skills/` directory.
     """
     return {k: src[k] for k in ("name", "version", "description")}
 
@@ -340,7 +343,7 @@ def build_marketplace(src, style):
         "author": src["author"],
         "homepage": src["homepage"],
         "tags": mkt["tags"],
-        "source": "./",
+        "source": PLUGIN_SOURCE,
     }
     meta = {"description": mkt["description"]}
     if style == "claude-style":
@@ -465,7 +468,7 @@ def main():
             written.append(write_json(os.path.join(target, "plugin.json"),
                                       build_manifest(src, profile)))
         if profile["marketplace"]:
-            written.append(write_json(os.path.join(target, "marketplace.json"),
+            written.append(write_json(os.path.join(ROOT, profile["dir"], "marketplace.json"),
                                       build_marketplace(src, profile["marketplace"])))
 
     written.append(write_json(os.path.join(PLUGIN, "gemini-extension.json"),

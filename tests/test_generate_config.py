@@ -13,7 +13,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "skills/talyx-setup/scripts/generate_config.py"
+SCRIPT = ROOT / "plugins/talyx-skills/skills/talyx-setup/scripts/generate_config.py"
 DENY_UNLINK = """import errno
 def deny_unlink(event, args):
     if event == 'os.remove':
